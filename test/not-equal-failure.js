@@ -17,8 +17,9 @@ tap.test('not equal failure', function (assert) {
 
     stream.pipe(parser);
     stream.pipe(concat(function (body) {
+        body = body.toString('utf8');
         assert.equal(
-            stripFullStack(body.toString('utf8')),
+            stripFullStack(body),
             'TAP version 13\n'
             + '# not equal\n'
             + 'not ok 1 should not be strictly equal\n'
