@@ -1,15 +1,21 @@
-# tape
+# fresh-tape
 
-tap-producing test harness for node and browsers
+fresh tap-producing test harness for node and browsers
 
-[![build status](https://secure.travis-ci.org/substack/tape.svg?branch=master)](http://travis-ci.org/substack/tape)
+[`tape`](https://npmjs.com/package/tape) is commited to keep the current node compatibility,
+which does not permit an update of major dependencies `through` and `concat-stream`.
+and in turn makes it hard to make tape
 
+This package updates the dependencies, which makes it incompatible with older node versions
+but is committed to stay compatible with tape.
+
+[![build status](https://secure.travis-ci.org/martinheidegger/fresh-tape.svg?branch=master)](http://travis-ci.org/martinheidegger/fresh-tape)
 ![tape](https://web.archive.org/web/20170612184731if_/http://substack.net/images/tape_drive.png)
 
 # example
 
 ``` js
-var test = require('tape');
+var test = require('fresh-tape');
 
 test('timing test', function (t) {
     t.plan(2);
@@ -43,31 +49,31 @@ not ok 2 should be strictly equal
 
 # usage
 
-You always need to `require('tape')` in test files. You can run the tests by
+You always need to `require('fresh-tape')` in test files. You can run the tests by
 usual node means (`require('test-file.js')` or `node test-file.js`). You can
-also run tests using the `tape` binary to utilize globbing, on Windows for
+also run tests using the `fresh-tape` binary to utilize globbing, on Windows for
 example:
 
 ```sh
-$ tape tests/**/*.js
+$ fresh-tape tests/**/*.js
 ```
 
-`tape`'s arguments are passed to the
+`fresh-tape`'s arguments are passed to the
 [`glob`](https://www.npmjs.com/package/glob) module. If you want `glob` to
 perform the expansion on a system where the shell performs such expansion, quote
 the arguments as necessary:
 
 ```sh
-$ tape 'tests/**/*.js'
-$ tape "tests/**/*.js"
+$ fresh-tape 'tests/**/*.js'
+$ fresh-tape "tests/**/*.js"
 ```
 
 ## Preloading modules
 
-Additionally, it is possible to make `tape` load one or more modules before running any tests, by using the `-r` or `--require` flag. Here's an example that loads [babel-register](http://babeljs.io/docs/usage/require/) before running any tests, to allow for JIT compilation:
+Additionally, it is possible to make `fresh-tape` load one or more modules before running any tests, by using the `-r` or `--require` flag. Here's an example that loads [babel-register](http://babeljs.io/docs/usage/require/) before running any tests, to allow for JIT compilation:
 
 ```sh
-$ tape -r babel-register tests/**/*.js
+$ fresh-tape -r babel-register tests/**/*.js
 ```
 
 Depending on the module you're loading, you may be able to parameterize it using environment variables or auxiliary files. Babel, for instance, will load options from [`.babelrc`](http://babeljs.io/docs/usage/babelrc/) at runtime.
@@ -77,14 +83,14 @@ The `-r` flag behaves exactly like node's `require`, and uses the same module re
 For example:
 
 ```sh
-$ tape -r ./my/local/module tests/**/*.js
+$ fresh-tape -r ./my/local/module tests/**/*.js
 ```
 
-Please note that all modules loaded using the `-r` flag will run *before* any tests, regardless of when they are specified. For example, `tape -r a b -r c` will actually load `a` and `c` *before* loading `b`, since they are flagged as required modules.
+Please note that all modules loaded using the `-r` flag will run *before* any tests, regardless of when they are specified. For example, `fresh-tape -r a b -r c` will actually load `a` and `c` *before* loading `b`, since they are flagged as required modules.
 
 # things that go well with tape
 
-`tape` maintains a fairly minimal core. Additional features are usually added by using another module alongside `tape`.
+`fresh-tape` maintains a fairly minimal core. Additional features are usually added by using another module alongside `fresh-tape`.
 
 ## pretty reporters
 
@@ -123,7 +129,7 @@ of the modules of your choice!
 
 ## uncaught exceptions
 
-By default, uncaught exceptions in your tests will not be intercepted, and will cause `tape` to crash. If you find this behavior undesirable, use [`tape-catch`](https://github.com/michaelrhodes/tape-catch) to report any exceptions as TAP errors.
+By default, uncaught exceptions in your tests will not be intercepted, and will cause `fresh-tape` to crash. If you find this behavior undesirable, use [`tape-catch`](https://github.com/michaelrhodes/tape-catch) to report any exceptions as TAP errors.
 
 ## other
 
@@ -142,7 +148,7 @@ The assertion methods in `tape` are heavily influenced or copied from the method
 in [node-tap](https://github.com/isaacs/node-tap).
 
 ```js
-var test = require('tape')
+var test = require('fresh-tape')
 ```
 
 ## test([name], [opts], cb)
@@ -330,7 +336,7 @@ output, but you can get an object stream instead by setting `opts.objectMode` to
 You can create your own custom test reporter using this `createStream()` api:
 
 ``` js
-var test = require('tape');
+var test = require('fresh-tape');
 var path = require('path');
 
 test.createStream().pipe(process.stdout);
@@ -372,7 +378,7 @@ ok 4 (unnamed assert)
 Here's how you can render an object stream instead of TAP:
 
 ``` js
-var test = require('tape');
+var test = require('fresh-tape');
 var path = require('path');
 
 test.createStream({ objectMode: true }).on('data', function (row) {
@@ -405,7 +411,7 @@ $ node object.js test/x.js test/y.js
 With [npm](https://npmjs.org) do:
 
 ```sh
-npm install tape --save-dev
+npm install fresh-tape --save-dev
 ```
 
 # license

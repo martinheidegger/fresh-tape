@@ -1,7 +1,7 @@
 {
-    "name": "tape",
+    "name": "fresh-tape",
     "version": "5.0.1",
-    "description": "tap-producing test harness for node and browsers",
+    "description": "fresh tap-producing test harness for node and browsers (with dependencies updated beyond node 4)",
     "main": "index.js",
     "exports": {
         ".": [
@@ -16,7 +16,7 @@
         "./package": "./package.json",
         "./package.json": "./package.json"
     },
-    "bin": "./bin/tape",
+    "bin": "./bin/fresh-tape",
     "directories": {
         "example": "example",
         "test": "test"
@@ -73,9 +73,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/substack/tape.git"
+        "url": "git://github.com/martinheidegger/fresh-tape.git"
     },
-    "homepage": "https://github.com/substack/tape",
+    "homepage": "https://github.com/martinheidegger/fresh-tape",
     "keywords": [
         "tap",
         "test",
