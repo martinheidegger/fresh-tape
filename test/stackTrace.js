@@ -3,7 +3,7 @@
 var tape = require('../');
 var tap = require('tap');
 var concat = require('concat-stream');
-var tapParser = require('tap-parser');
+var TapParser = require('tap-parser');
 var yaml = require('js-yaml');
 
 tap.test('preserves stack trace with newlines', function (tt) {
@@ -11,7 +11,7 @@ tap.test('preserves stack trace with newlines', function (tt) {
 
     var test = tape.createHarness();
     var stream = test.createStream();
-    var parser = stream.pipe(tapParser());
+    var parser = stream.pipe(new TapParser());
     var stackTrace = 'foo\n  bar';
 
     parser.once('assert', function (data) {
@@ -23,7 +23,8 @@ tap.test('preserves stack trace with newlines', function (tt) {
             diag: {
                 stack: stackTrace,
                 operator: 'error'
-            }
+            },
+            fullname: ''
         });
     });
 
@@ -163,7 +164,7 @@ tap.test('preserves stack trace for failed assertions', function (tt) {
 
     var test = tape.createHarness();
     var stream = test.createStream();
-    var parser = stream.pipe(tapParser());
+    var parser = stream.pipe(new TapParser());
 
     var stack = '';
     parser.once('assert', function (data) {
@@ -182,7 +183,8 @@ tap.test('preserves stack trace for failed assertions', function (tt) {
                 operator: 'equal',
                 expected: false,
                 actual: true
-            }
+            },
+            fullname: ''
         });
     });
 
@@ -228,7 +230,7 @@ tap.test('preserves stack trace for failed assertions where actual===falsy', fun
 
     var test = tape.createHarness();
     var stream = test.createStream();
-    var parser = stream.pipe(tapParser());
+    var parser = stream.pipe(new TapParser());
 
     var stack = '';
     parser.once('assert', function (data) {
@@ -247,7 +249,8 @@ tap.test('preserves stack trace for failed assertions where actual===falsy', fun
                 operator: 'equal',
                 expected: true,
                 actual: false
-            }
+            },
+            fullname: ''
         });
     });
 

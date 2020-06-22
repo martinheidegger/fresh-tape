@@ -47,15 +47,15 @@
         "eslint": "^7.0.0",
         "falafel": "^2.2.4",
         "js-yaml": "^3.13.1",
-        "tap": "^8.0.1",
-        "tap-parser": "^3.0.5"
+        "tap": "^14.10.7",
+        "tap-parser": "^10.0.1"
     },
     "scripts": {
         "prelint": "eclint check",
         "lint": "eslint . bin/*",
         "pretest": "npm run lint",
         "test": "npm run tests-only",
-        "tests-only": "tap test/*.js"
+        "tests-only": "tap --no-esm -Rtap --no-cov test/*.js"
     },
     "testling": {
         "files": "test/browser/*.js",

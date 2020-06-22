@@ -3,7 +3,7 @@
 var tape = require('../');
 var tap = require('tap');
 var concat = require('concat-stream');
-var tapParser = require('tap-parser');
+var TapParser = require('tap-parser');
 var common = require('./common');
 
 var getDiag = common.getDiag;
@@ -12,7 +12,7 @@ var stripFullStack = common.stripFullStack;
 tap.test('not equal failure', function (assert) {
     var test = tape.createHarness({ exit: false });
     var stream = test.createStream();
-    var parser = tapParser();
+    var parser = new TapParser();
     assert.plan(3);
 
     stream.pipe(parser);
@@ -58,7 +58,8 @@ tap.test('not equal failure', function (assert) {
                 operator: 'notEqual',
                 expected: '2',
                 actual: '2'
-            }
+            },
+            fullname: ''
         });
     });
 
