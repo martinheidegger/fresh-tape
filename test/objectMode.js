@@ -3,53 +3,51 @@
 var tap = require('tap');
 var tape = require('../');
 var forEach = require('for-each');
-var through = require('through');
+var Writable = require('readable-stream').Writable;
 
 tap.test('object results', function (assert) {
-    var printer = through({ objectMode: true });
     var objects = [];
-
-    printer.write = function (obj) {
-        objects.push(obj);
-    };
-
-    printer.end = function (obj) {
-        if (obj) objects.push(obj);
-
-        var todos = 0;
-        var skips = 0;
-        var testIds = [];
-        var endIds = [];
-        var asserts = 0;
-
-        assert.equal(objects.length, 13);
-
-        forEach(objects, function (obj) {
-            if (obj.type === 'assert') {
-                asserts++;
-            } else if (obj.type === 'test') {
-                testIds.push(obj.id);
-
-                if (obj.skip) {
-                    skips++;
-                } else if (obj.todo) {
-                    todos++;
-                }
-            } else if (obj.type === 'end') {
-                endIds.push(obj.text);
-                // test object should exist
-                assert.notEqual(testIds.indexOf(obj.test), -1);
+    tape.createStream({ objectMode: true })
+        .pipe(new Writable({
+            objectMode: true,
+            write: function (obj, _, cb) {
+                objects.push(obj);
+                cb();
             }
+        }))
+        .on('finish', function () {
+            var todos = 0;
+            var skips = 0;
+            var testIds = [];
+            var endIds = [];
+            var asserts = 0;
+
+            assert.equal(objects.length, 13);
+
+            forEach(objects, function (obj) {
+                if (obj.type === 'assert') {
+                    asserts++;
+                } else if (obj.type === 'test') {
+                    testIds.push(obj.id);
+
+                    if (obj.skip) {
+                        skips++;
+                    } else if (obj.todo) {
+                        todos++;
+                    }
+                } else if (obj.type === 'end') {
+                    endIds.push(obj.text);
+                    // test object should exist
+                    assert.notEqual(testIds.indexOf(obj.test), -1);
+                }
+            });
+
+            assert.equal(asserts, 5);
+            assert.equal(skips, 1);
+            assert.equal(todos, 2);
+            assert.equal(testIds.length, endIds.length);
+            assert.end();
         });
-
-        assert.equal(asserts, 5);
-        assert.equal(skips, 1);
-        assert.equal(todos, 2);
-        assert.equal(testIds.length, endIds.length);
-        assert.end();
-    };
-
-    tape.createStream({ objectMode: true }).pipe(printer);
 
     tape('parent', function (t1) {
         t1.equal(true, true);

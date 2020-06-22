@@ -5,6 +5,16 @@ var ran = 0;
 
 var concat = require('concat-stream');
 var tap = require('tap');
+var Writable = require('readable-stream').Writable;
+
+//Because this test passing depends on a failure,
+//we must direct the failing output of the inner test
+var mockSink = new Writable({
+    write: function (_, _2, cb) {
+        cb();
+    }
+});
+test.createStream().pipe(mockSink);
 
 tap.test('test SKIP comment', function (assert) {
     assert.plan(1);

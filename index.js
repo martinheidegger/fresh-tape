@@ -4,7 +4,7 @@ var defined = require('defined');
 var createDefaultStream = require('./lib/default_stream');
 var Test = require('./lib/test');
 var createResult = require('./lib/results');
-var through = require('through');
+var through = require('through2');
 
 var canEmitExit = typeof process !== 'undefined' && process
     && typeof process.on === 'function' && process.browser !== true
@@ -26,7 +26,7 @@ exports = module.exports = (function () {
     lazyLoad.createStream = function (opts) {
         if (!opts) opts = {};
         if (!harness) {
-            var output = through();
+            var output = through(opts);
             getHarness({ stream: output, objectMode: opts.objectMode });
             return output;
         }
@@ -76,7 +76,14 @@ function createExitHarness(conf) {
         if (code !== 0) {
             return;
         }
+        process.exit(code || harness._exitCode);
+    });
 
+    process.on('beforeExit', function (code) {
+        // let the process exit cleanly.
+        if (code !== 0) {
+            return;
+        }
         if (!ended) {
             var only = harness._results._only;
             for (var i = 0; i < harness._tests.length; i++) {
@@ -86,7 +93,6 @@ function createExitHarness(conf) {
             }
         }
         harness.close();
-        process.exit(code || harness._exitCode);
     });
 
     return harness;
