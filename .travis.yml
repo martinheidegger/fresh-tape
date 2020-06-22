@@ -2,6 +2,22 @@ version: ~> 1.0
 language: node_js
 os:
  - linux
-import:
- - ljharb/travis-ci:node/majors/gte_8.yml
- - ljharb/travis-ci:node/pretest.yml
+ - windows
+ - osx
+node_js:
+  - "14"
+  - "12"
+  - "10"
+  - "8"
+matrix:
+  fast_finish: true
+  include:
+    - node_js: "lts/*"
+      env: PRETEST=true
+before_install:
+  - 'if [ "${TRAVIS_OS_NAME}" != "windows" ]]; then npm i npm@latest -g; fi'
+script:
+  - 'if [ -n "${PRETEST-}" ]; then npm run pretest ; fi'
+  - 'if [ -n "${TEST-}" ]; then npm run tests-only ; fi'
+env:
+  - TEST=true

@@ -7,7 +7,7 @@ var concat = require('concat-stream');
 
 var stripFullStack = require('./common').stripFullStack;
 
-var tapeBin = path.join(process.cwd(), 'bin/tape');
+var tapeBin = path.join(process.cwd(), 'bin/fresh-tape');
 
 tap.test('Should pass with ignoring', { skip: process.platform === 'win32' }, function (tt) {
     tt.plan(2);

@@ -92,7 +92,9 @@ function createExitHarness(conf) {
                 t._exit();
             }
         }
-        harness.close();
+        if (!harness._results.closed) {
+            harness.close();
+        }
     });
 
     return harness;

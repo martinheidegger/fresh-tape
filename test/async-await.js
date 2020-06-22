@@ -1,6 +1,7 @@
 'use strict';
 
 var tap = require('tap');
+var os = require('os');
 
 var stripFullStack = require('./common').stripFullStack;
 var runProgram = require('./common').runProgram;
@@ -197,7 +198,7 @@ tap.test('sync-error', function (t) {
             '    at Test.run ($TAPE/lib/test.js:$LINE:$COL)',
             '    at Test.bound [as run] ($TAPE/lib/test.js:$LINE:$COL)',
             ''
-        ].join('\n'));
+        ].join(os.EOL));
         t.end();
     });
 });
