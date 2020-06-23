@@ -43,6 +43,7 @@
         "through2": "github:martinheidegger/through2"
     },
     "devDependencies": {
+        "@types/node": "^14.0.13",
         "concat-stream": "^2.0.0",
         "eclint": "^2.8.1",
         "ecstatic": "^4.1.4",
@@ -50,11 +51,12 @@
         "falafel": "^2.2.4",
         "js-yaml": "^3.13.1",
         "tap": "^14.10.7",
-        "tap-parser": "^10.0.1"
+        "tap-parser": "^10.0.1",
+        "typescript": "^3.9.5"
     },
     "scripts": {
         "prelint": "eclint check",
-        "lint": "eslint . bin/*",
+        "lint": "eslint . bin/* && tsc --noEmit test/typings.ts",
         "pretest": "npm run lint",
         "test": "npm run tests-only",
         "tests-only": "tap --no-esm -Rtap --no-cov test/*.js"
