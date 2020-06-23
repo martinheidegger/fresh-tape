@@ -3,11 +3,11 @@
 fresh tap-producing test harness for node and browsers
 
 [`tape`](https://npmjs.com/package/tape) is commited to keep the current node compatibility,
-which does not permit an update of major dependencies `through` and `concat-stream`.
-and in turn makes it hard to make tape
+which does not permit an update of major dependencies like `through` and `concat-stream`.
+This makes it difficult to use `tape` with webpack.
 
 This package updates the dependencies, which makes it incompatible with older node versions
-but is committed to stay compatible with tape.
+but otherwise is committed to stay compatible with tape.
 
 **`fresh-tape` can be compiled with webpack as-is!**
 
