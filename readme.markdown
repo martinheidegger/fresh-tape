@@ -11,7 +11,7 @@ but otherwise is committed to stay compatible with tape.
 
 **`fresh-tape` can be compiled with webpack as-is!**
 
-[![build status](https://secure.travis-ci.org/martinheidegger/fresh-tape.svg?branch=master)](http://travis-ci.org/martinheidegger/fresh-tape)
+[![build status](https://secure.travis-ci.org/martinheidegger/fresh-tape.svg?branch=main)](http://travis-ci.org/martinheidegger/fresh-tape)
 ![tape](https://web.archive.org/web/20170612184731if_/http://substack.net/images/tape_drive.png)
 
 # example
