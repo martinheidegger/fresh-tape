@@ -52,11 +52,13 @@
         "js-yaml": "^3.13.1",
         "tap": "^14.10.7",
         "tap-parser": "^10.0.1",
-        "typescript": "^3.9.5"
+        "typescript": "^3.9.5",
+        "webpack": "^4.43.0",
+        "webpack-cli": "^3.3.12"
     },
     "scripts": {
         "prelint": "eclint check",
-        "lint": "eslint . bin/* && tsc --noEmit test/typings.ts",
+        "lint": "eslint . bin/* && tsc --noEmit test/typings.ts && webpack --bail index.js",
         "pretest": "npm run lint",
         "test": "npm run tests-only",
         "tests-only": "tap --no-esm -Rtap --no-cov test/*.js"

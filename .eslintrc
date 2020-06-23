@@ -1,4 +1,5 @@
 {
+    "ignorePatterns": ["dist/*"],
     "root": true,
     "env": {
         "browser": true,
