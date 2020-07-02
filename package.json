@@ -36,7 +36,7 @@
         "object-is": "^1.1.2",
         "object.assign": "^4.1.0",
         "path-pony": "^1.0.0",
-        "readable-stream": "github:hugomrdias/readable-stream#fix/remove-node-globals",
+        "readable-stream": "github:martinheidegger/readable-stream#fix/remove-node-globals",
         "resolve": "^1.17.0",
         "resumer-through2": "^1.0.0",
         "string.prototype.trim": "^1.2.1",
