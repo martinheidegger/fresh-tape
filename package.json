@@ -38,7 +38,7 @@
         "path-pony": "^1.0.0",
         "readable-stream": "github:martinheidegger/readable-stream#fix/remove-node-globals",
         "resolve": "^1.17.0",
-        "resumer-through2": "^1.0.0",
+        "resumer-through2": "github:martinheidegger/resumer-through2#react-native",
         "string.prototype.trim": "^1.2.1",
         "through2": "github:martinheidegger/through2"
     },
