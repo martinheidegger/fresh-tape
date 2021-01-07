@@ -4,7 +4,7 @@ var falafel = require('falafel');
 var test = require('../');
 
 test('array', function (t) {
-    t.plan(8);
+    t.plan(3);
 
     var src = '(' + function () {
         var xs = [ 1, 2, [ 3, 4 ] ];
@@ -22,7 +22,7 @@ test('array', function (t) {
         [ 3, 4 ],
         [ 1, 2, [ 3, 4 ] ],
         [ 5, 6 ],
-        [ [ 1, 2, [ 3, 4 ] ], [ 5, 6 ] ],
+        [ [ 1, 2, [ 3, 4 ] ], [ 5, 6 ] ]
     ];
 
     Function(['fn','g'], output)(

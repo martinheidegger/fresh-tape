@@ -9,6 +9,7 @@
         "Promise": false,
     },
     "rules": {
+        "comma-dangle": ["error", "never"],
         "indent": ["error", 4],
         "key-spacing": "error",
         "quotes": ["error", "single", {
@@ -21,6 +22,11 @@
         }],
         "no-undef": "error",
         "no-useless-escape": "error",
+        "operator-linebreak": ["error", "before"],
+        "space-unary-ops": ["error", {
+            "words": false,
+            "nonwords": false,
+        }],
         "strict": "error",
     },
     "overrides": [

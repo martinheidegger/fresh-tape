@@ -56,7 +56,11 @@ module.exports.stripFullStack = function (output) {
         return line;
     });
 
-    var deduped = withDuplicates.filter(function (line, ix) {
+    var withoutInternals = withDuplicates.filter(function (line) {
+        return !line.match(/ \(node:[^)]+\)$/);
+    });
+
+    var deduped = withoutInternals.filter(function (line, ix) {
         var hasPrior = line === stripped && withDuplicates[ix - 1] === stripped;
         return !hasPrior;
     });
@@ -65,7 +69,7 @@ module.exports.stripFullStack = function (output) {
         // Handle stack trace variation in Node v0.8
         /at(:?) Test\.(?:module\.exports|tap\.test\.err\.code)/g,
         'at$1 Test.<anonymous>'
-    );
+    ).split('\n');
 };
 
 module.exports.runProgram = function (folderName, fileName, cb) {

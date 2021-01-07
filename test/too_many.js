@@ -36,8 +36,9 @@ tap.test('array test', function (tt) {
             '1..6',
             '# tests 6',
             '# pass  5',
-            '# fail  1'
-        ].join('\n') + '\n');
+            '# fail  1',
+            ''
+        ]);
     };
 
     test.createStream().pipe(concat(tc));
@@ -61,7 +62,7 @@ tap.test('array test', function (tt) {
             [ 3, 4 ],
             [ 1, 2, [ 3, 4 ] ],
             [ 5, 6 ],
-            [ [ 1, 2, [ 3, 4 ] ], [ 5, 6 ] ],
+            [ [ 1, 2, [ 3, 4 ] ], [ 5, 6 ] ]
         ];
 
         Function(['fn','g'], output)(

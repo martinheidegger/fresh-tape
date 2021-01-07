@@ -29,6 +29,11 @@ test('timing test', function (t) {
         t.equal(Date.now() - start, 100);
     }, 100);
 });
+
+test('test using promises', async function (t) {
+    const result = await someAsyncThing();
+    t.ok(result);
+});
 ```
 
 ```
@@ -125,6 +130,7 @@ that will output something pretty if you pipe TAP into them:
 - [tap-nyc](https://github.com/MegaArman/tap-nyc)
 - [tap-spec (emoji patch)](https://github.com/Sceat/tap-spec-emoji)
 - [tape-repeater](https://github.com/rgruesbeck/tape-repeater)
+- [tabe](https://github.com/Josenzo/tabe)
 
 To use them, try `node test/index.js | tap-spec` or pipe it into one
 of the modules of your choice!
@@ -136,7 +142,6 @@ By default, uncaught exceptions in your tests will not be intercepted, and will 
 ## other
 
 - CoffeeScript support with https://www.npmjs.com/package/coffeetape
-- Promise support with https://www.npmjs.com/package/blue-tape or https://www.npmjs.com/package/tape-promise
 - ES6 support with https://www.npmjs.com/package/babel-tape-runner or https://www.npmjs.com/package/buble-tape-runner
 - Different test syntax with https://github.com/pguth/flip-tape (warning: mutates String.prototype)
 - Electron test runner with https://github.com/tundrax/electron-tap
@@ -165,8 +170,9 @@ Available `opts` options are:
 - opts.objectPrintDepth = 5. Configure max depth of expected / actual object printing. Environmental variable `NODE_TAPE_OBJECT_PRINT_DEPTH` can set the desired default depth for all tests; locally-set values will take precedence.
 - opts.todo = true/false. Test will be allowed to fail.
 
-If you forget to `t.plan()` out how many assertions you are going to run and you
-don't call `t.end()` explicitly, your test will hang.
+If you forget to `t.plan()` out how many assertions you are going to run and you don't call `t.end()` explicitly, or return a Promise that eventually settles, your test will hang.
+
+If `cb` returns a Promise, it will be implicitly awaited. If that promise rejects, the test will be failed; if it fulfills, the test will end. Explicitly calling `t.end()` while also returning a Promise that fulfills is an error.
 
 ## test.skip([name], [opts], cb)
 
@@ -174,12 +180,15 @@ Generate a new test that will be skipped over.
 
 ## test.onFinish(fn)
 
-The onFinish hook will get invoked when ALL `tape` tests have finished
-right before `tape` is about to print the test summary.
+The onFinish hook will get invoked when ALL `tape` tests have finished right before `tape` is about to print the test summary.
+
+`fn` is called with no arguments, and its return value is ignored.
 
 ## test.onFailure(fn)
 
 The onFailure hook will get invoked whenever any `tape` tests has failed.
+
+`fn` is called with no arguments, and its return value is ignored.
 
 ## t.plan(n)
 
@@ -189,8 +198,9 @@ the `n`th, or after `t.end()` is called, they will generate errors.
 
 ## t.end(err)
 
-Declare the end of a test explicitly. If `err` is passed in `t.end` will assert
-that it is falsey.
+Declare the end of a test explicitly. If `err` is passed in `t.end` will assert that it is falsy.
+
+Do not call `t.end()` if your test callback returns a Promise.
 
 ## t.fail(msg)
 
@@ -222,8 +232,7 @@ Aliases: `t.false()`, `t.notok()`
 
 ## t.error(err, msg)
 
-Assert that `err` is falsy. If `err` is non-falsy, use its `err.message` as the
-description message.
+Assert that `err` is falsy. If `err` is non-falsy, use its `err.message` as the description message.
 
 Aliases: `t.ifError()`, `t.ifErr()`, `t.iferror()`
 
@@ -293,15 +302,15 @@ Assert that the function call `fn()` does not throw an exception. `expected`, if
 
 ## t.test(name, [opts], cb)
 
-Create a subtest with a new test handle `st` from `cb(st)` inside the current
-test `t`. `cb(st)` will only fire when `t` finishes. Additional tests queued up
-after `t` will not be run until all subtests finish.
+Create a subtest with a new test handle `st` from `cb(st)` inside the current test `t`. `cb(st)` will only fire when `t` finishes. Additional tests queued up after `t` will not be run until all subtests finish.
 
 You may pass the same options that [`test()`](#testname-opts-cb) accepts.
 
 ## t.comment(message)
 
 Print a message without breaking the tap output. (Useful when using e.g. `tap-colorize` where output is buffered & `console.log` will print in incorrect order vis-a-vis tap output.)
+
+Multiline output will be split by `\n` characters, and each one printed as a comment.
 
 ## t.match(string, regexp, message)
 
@@ -313,25 +322,17 @@ Assert that `string` does not match the RegExp `regexp`. Will throw (not just fa
 
 ## var htest = test.createHarness()
 
-Create a new test harness instance, which is a function like `test()`, but with
-a new pending stack and test state.
+Create a new test harness instance, which is a function like `test()`, but with a new pending stack and test state.
 
-By default the TAP output goes to `console.log()`. You can pipe the output to
-someplace else if you `htest.createStream().pipe()` to a destination stream on
-the first tick.
+By default the TAP output goes to `console.log()`. You can pipe the output to someplace else if you `htest.createStream().pipe()` to a destination stream on the first tick.
 
 ## test.only([name], [opts], cb)
 
-Like `test([name], [opts], cb)` except if you use `.only` this is the only test case
-that will run for the entire process, all other test cases using `tape` will
-be ignored.
+Like `test([name], [opts], cb)` except if you use `.only` this is the only test case that will run for the entire process, all other test cases using `tape` will be ignored.
 
 ## var stream = test.createStream(opts)
 
-Create a stream of output, bypassing the default output stream that writes
-messages to `console.log()`. By default `stream` will be a text stream of TAP
-output, but you can get an object stream instead by setting `opts.objectMode` to
-`true`.
+Create a stream of output, bypassing the default output stream that writes messages to `console.log()`. By default `stream` will be a text stream of TAP output, but you can get an object stream instead by setting `opts.objectMode` to `true`.
 
 ### tap stream reporter
 
@@ -348,8 +349,7 @@ process.argv.slice(2).forEach(function (file) {
 });
 ```
 
-You could substitute `process.stdout` for whatever other output stream you want,
-like a network connection or a file.
+You could substitute `process.stdout` for whatever other output stream you want, like a network connection or a file.
 
 Pass in test files to run as arguments:
 
@@ -414,6 +414,74 @@ With [npm](https://npmjs.org) do:
 
 ```sh
 npm install fresh-tape --save-dev
+```
+
+# troubleshooting
+
+Sometimes `t.end()` doesn’t preserve the expected output ordering.
+
+For instance the following:
+
+```js
+var test = require('tape');
+
+test('first', function (t) {
+
+  setTimeout(function () {
+    t.ok(1, 'first test');
+    t.end();
+  }, 200);
+
+  t.test('second', function (t) {
+    t.ok(1, 'second test');
+    t.end();
+  });
+});
+
+test('third', function (t) {
+  setTimeout(function () {
+    t.ok(1, 'third test');
+    t.end();
+  }, 100);
+});
+```
+
+will output:
+
+```
+ok 1 second test
+ok 2 third test
+ok 3 first test
+```
+
+because `second` and `third` assume `first` has ended before it actually does.
+
+Use `t.plan()` instead to let other tests know they should wait:
+
+```diff
+var test = require('tape');
+
+test('first', function (t) {
+
++  t.plan(2);
+
+  setTimeout(function () {
+    t.ok(1, 'first test');
+-    t.end();
+  }, 200);
+
+  t.test('second', function (t) {
+    t.ok(1, 'second test');
+    t.end();
+  });
+});
+
+test('third', function (t) {
+  setTimeout(function () {
+    t.ok(1, 'third test');
+    t.end();
+  }, 100);
+});
 ```
 
 # license
