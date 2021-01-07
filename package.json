@@ -38,11 +38,11 @@
         "object-is": "^1.1.4",
         "object.assign": "^4.1.2",
         "path-pony": "^1.0.0",
-        "readable-stream": "github:martinheidegger/readable-stream#fix/remove-node-globals",
+        "readable-stream": "https://registry.npmjs.org/@leichtgewicht/readable-stream/-/readable-stream-3.6.0.tgz",
         "resolve": "^1.19.0",
-        "resumer-through2": "github:martinheidegger/resumer-through2#react-native",
+        "resumer-through2": "https://registry.npmjs.org/resumer-through2/-/resumer-through2-1.0.1.tgz",
         "string.prototype.trim": "^1.2.3",
-        "through2": "github:martinheidegger/through2"
+        "through2": "https://registry.npmjs.org/@leichtgewicht/through2/-/through2-4.0.2.tgz"
     },
     "devDependencies": {
         "aud": "^1.1.3",
