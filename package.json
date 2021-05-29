@@ -1,6 +1,6 @@
 {
     "name": "fresh-tape",
-    "version": "5.2.2",
+    "version": "5.2.3",
     "description": "fresh tap-producing test harness for node and browsers (with dependencies updated beyond node 4)",
     "main": "index.js",
     "browser": "index.js",
