@@ -4,7 +4,7 @@ var defined = require('defined');
 var createDefaultStream = require('./lib/default_stream');
 var Test = require('./lib/test');
 var createResult = require('./lib/results');
-var through = require('through2');
+var Transform = require('readable-stream').Transform;
 
 var canEmitExit = typeof process !== 'undefined' && process
     && typeof process.on === 'function' && process.browser !== true
@@ -26,7 +26,10 @@ exports = module.exports = (function () {
     lazyLoad.createStream = function (opts) {
         if (!opts) opts = {};
         if (!harness) {
-            var output = through(opts);
+            var output = new Transform(opts.objectMode
+                ? Object.assign({ objectMode: true, highWaterMark: 16, transform: passthrough }, opts)
+                : opts
+            );
             getHarness({ stream: output, objectMode: opts.objectMode });
             return output;
         }
@@ -157,4 +160,8 @@ function createHarness(conf_) {
     test.close = function () { results.close(); };
 
     return test;
+}
+
+function passthrough(input, _encoding, cb) {
+    cb(null, input);
 }
