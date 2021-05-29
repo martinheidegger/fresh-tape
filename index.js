@@ -73,7 +73,7 @@ function createExitHarness(conf) {
 
     process.on('exit', function (code) {
         // let the process exit cleanly.
-        if (code !== 0) {
+        if (typeof code === 'number' && code !== 0) {
             return;
         }
         process.exit(code || harness._exitCode);
