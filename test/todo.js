@@ -20,7 +20,7 @@ tap.test('tape todo test', function (assert) {
             'not ok 2 should never happen # TODO',
             '  ---',
             '    operator: fail',
-            '    at: Test.<anonymous> ($TEST/todo.js:$LINE:$COL)',
+            '    at: Test.apply ($TEST/todo.js:$LINE:$COL)',
             '  ...',
             '',
             '1..2',

@@ -3,6 +3,7 @@
     "version": "5.2.2",
     "description": "fresh tap-producing test harness for node and browsers (with dependencies updated beyond node 4)",
     "main": "index.js",
+    "browser": "index.js",
     "exports": {
         ".": [
             {
@@ -54,22 +55,23 @@
         "es-value-fixtures": "^1.2.1",
         "eslint": "^7.25.0",
         "falafel": "^2.2.4",
-        "js-yaml": "^3.14.0",
+        "in-publish": "^2.0.1",
+        "js-yaml": "^3.14.1",
         "tap": "^14.11.0",
         "tap-parser": "^10.1.0",
-        "typescript": "^3.9.9",
-        "webpack": "^4.43.0",
-        "webpack-cli": "^3.3.12"
+        "typescript": "^4.3.2",
+        "webpack": "^5.38.1",
+        "webpack-cli": "^4.7.0"
     },
     "scripts": {
         "prepublishOnly": "safe-publish-latest",
         "prepublish": "!(type not-in-publish) || not-in-publish || npm run prepublishOnly",
         "prelint": "eclint check",
-        "lint": "eslint . bin/* && tsc --noEmit test/typings.ts && webpack --bail index.js",
+        "lint": "eslint . bin/* && tsc --noEmit test/typings.ts && webpack --mode production --bail ./index.js",
         "pretest": "npm run lint",
         "test": "npm run tests-only",
         "posttest": "aud --production",
-        "tests-only": "tap --no-esm -Rtap --no-cov test/*.js",
+        "tests-only": "tap -Rtap --no-check-coverage --no-coverage-report test/*.js",
         "test:example": "find example -name '*.js' | grep -v fail | grep -v static | xargs tap"
     },
     "testling": {

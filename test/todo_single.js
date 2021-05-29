@@ -20,7 +20,7 @@ tap.test('tape todo test', function (assert) {
             '    operator: equal',
             '    expected: false',
             '    actual:   true',
-            '    at: Test.<anonymous> ($TEST/todo_single.js:$LINE:$COL)',
+            '    at: Test.apply ($TEST/todo_single.js:$LINE:$COL)',
             '  ...',
             '',
             '1..1',
