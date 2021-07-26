@@ -1,5 +1,4 @@
 {
-    "ignorePatterns": ["dist/*"],
     "root": true,
     "env": {
         "browser": true,
@@ -29,7 +28,18 @@
         }],
         "strict": "error",
     },
+    "ignorePatterns": [ "dist/*", "syntax-error.*" ],
     "overrides": [
+        {
+            "files": ["*.mjs", "test/import/package_type/*.js"],
+            "extends": "@ljharb/eslint-config/esm",
+        },
+        {
+            "files": ["bin/import-or-require.js"],
+            "parserOptions": {
+                "ecmaVersion": 2020,
+            },
+        },
         {
             "files": ["test/async-await/*"],
             "parserOptions": {

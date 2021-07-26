@@ -8,6 +8,9 @@ var readFileSync = require('fs').readFileSync;
 var parseOpts = require('minimist');
 var glob = require('glob');
 var ignore = require('dotignore');
+var hasImport = require('has-dynamic-import');
+
+var tape = require('../');
 
 var opts = parseOpts(process.argv.slice(2), {
     alias: { r: 'require', i: 'ignore' },
@@ -41,18 +44,44 @@ if (typeof opts.ignore === 'string') {
     var matcher = ignore.createMatcher(ignoreStr);
 }
 
-opts._.forEach(function (arg) {
+var files = opts._.reduce(function (result, arg) {
     // If glob does not match, `files` will be an empty array.
     // Note: `glob.sync` may throw an error and crash the node process.
     var files = glob.sync(arg);
 
     if (!Array.isArray(files)) {
-        throw new TypeError('unknown error: glob.sync did not return an array or throw. Please report this.');
+        throw new TypeError('unknown error: glob.sync("' + arg + '") did not return an array or throw. Please report this.');
     }
 
-    files.filter(function (file) { return !matcher || !matcher.shouldIgnore(file); }).forEach(function (file) {
-        require(resolvePath(cwd, file));
-    });
+    return result.concat(files);
+}, []).filter(function (file) {
+    return !matcher || !matcher.shouldIgnore(file);
+}).map(function (file) {
+    return resolvePath(cwd, file);
 });
+
+hasImport().then(function (hasSupport) {
+    // the nextTick callback gets called outside the promise chain, avoiding
+    // promises and unhandled rejections when only loading commonjs files
+    process.nextTick(importFiles, hasSupport);
+});
+
+function importFiles(hasSupport) {
+    if (!hasSupport) {
+        return files.forEach(function (x) { require(x); });
+    }
+
+    var importOrRequire = require('./import-or-require');
+
+    tape.wait();
+
+    var promise = files.reduce(function (promise, file) {
+        return promise ? promise.then(function () {
+            return importOrRequire(file);
+        }) : importOrRequire(file);
+    }, null);
+
+    return promise ? promise.then(function () { tape.run(); }) : tape.run();
+}
 
 // vim: ft=javascript

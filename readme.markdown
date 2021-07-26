@@ -178,10 +178,6 @@ If `cb` returns a Promise, it will be implicitly awaited. If that promise reject
 
 Generate a new test that will be skipped over.
 
-## test.teardown(cb)
-
-Register a callback to run after the individual test has completed. Multiple registered teardown callbacks will run in order. Useful for undoing side effects, closing network connections, etc.
-
 ## test.onFinish(fn)
 
 The onFinish hook will get invoked when ALL `tape` tests have finished right before `tape` is about to print the test summary.
@@ -205,6 +201,10 @@ the `n`th, or after `t.end()` is called, they will generate errors.
 Declare the end of a test explicitly. If `err` is passed in `t.end` will assert that it is falsy.
 
 Do not call `t.end()` if your test callback returns a Promise.
+
+## t.teardown(cb)
+
+Register a callback to run after the individual test has completed. Multiple registered teardown callbacks will run in order. Useful for undoing side effects, closing network connections, etc.
 
 ## t.fail(msg)
 
@@ -452,6 +452,20 @@ $ node object.js test/x.js test/y.js
 {"type":"test","name":"wheee","id":2}
 {"id":0,"ok":true,"name":"(unnamed assert)","operator":"ok","actual":true,"expected":true,"test":2,"type":"assert"}
 {"type":"end","test":2}
+```
+
+A convenient alternative to achieve the same:
+```js
+// report.js
+var test = require('tape');
+
+test.createStream({ objectMode: true }).on('data', function (row) {
+    console.log(JSON.stringify(row)) // for example
+});
+```
+and then:
+```sh
+$ tape -r ./report.js **/*.test.js
 ```
 
 # install
