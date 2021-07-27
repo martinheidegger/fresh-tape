@@ -14,7 +14,7 @@ module.exports.getDiag = function (body) {
 
     // The stack trace and at variable will vary depending on where the code
     // is run, so just strip it out.
-    var withStack = yaml.safeLoad(diag);
+    var withStack = yaml.load(diag);
     delete withStack.stack;
     delete withStack.at;
     return withStack;

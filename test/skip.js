@@ -1,14 +1,13 @@
 'use strict';
 
 var test = require('../');
-var ran = 0;
 
 var concat = require('concat-stream');
 var tap = require('tap');
 var Writable = require('readable-stream').Writable;
 
-//Because this test passing depends on a failure,
-//we must direct the failing output of the inner test
+// Because this test passing depends on a failure,
+// we must direct the failing output of the inner test
 var mockSink = new Writable({
     write: function (_, _2, cb) {
         cb();
@@ -42,21 +41,18 @@ tap.test('test SKIP comment', function (assert) {
 
 test('skip this', { skip: true }, function (t) {
     t.fail('this should not even run');
-    ran++;
     t.end();
 });
 
 test.skip('skip this too', function (t) {
     t.fail('this should not even run');
-    ran++;
     t.end();
 });
 
 test('skip subtest', function (t) {
-    ran++;
-    t.test('skip this', { skip: true }, function (t) {
-        t.fail('this should not even run');
-        t.end();
+    t.test('skip this', { skip: true }, function (st) {
+        st.fail('this should not even run');
+        st.end();
     });
     t.end();
 });

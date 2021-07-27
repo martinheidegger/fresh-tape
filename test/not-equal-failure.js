@@ -17,8 +17,8 @@ tap.test('not equal failure', function (assert) {
 
     stream.pipe(parser);
     stream.pipe(concat(function (body) {
-        body = body.toString('utf8');
-        assert.deepEqual(stripFullStack(body), [
+        var bodyStr = body.toString('utf8');
+        assert.deepEqual(stripFullStack(bodyStr), [
             'TAP version 13',
             '# not equal',
             'not ok 1 should not be strictly equal',
@@ -41,7 +41,7 @@ tap.test('not equal failure', function (assert) {
             ''
         ]);
 
-        assert.deepEqual(getDiag(body), {
+        assert.deepEqual(getDiag(bodyStr), {
             operator: 'notEqual',
             expected: '2',
             actual: '2'
@@ -49,8 +49,6 @@ tap.test('not equal failure', function (assert) {
     }));
 
     parser.once('assert', function (data) {
-        delete data.diag.stack;
-        delete data.diag.at;
         assert.deepEqual(data, {
             ok: false,
             id: 1,
@@ -58,7 +56,11 @@ tap.test('not equal failure', function (assert) {
             diag: {
                 operator: 'notEqual',
                 expected: '2',
-                actual: '2'
+                actual: '2',
+                // we don't care about these next two
+                stack: data.diag.stack,
+                at: data.diag.at
+
             },
             fullname: ''
         });

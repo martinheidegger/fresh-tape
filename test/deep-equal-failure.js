@@ -17,8 +17,8 @@ tap.test('deep equal failure', function (assert) {
 
     stream.pipe(parser);
     stream.pipe(concat(function (body) {
-        body = body.toString('utf8');
-        assert.deepEqual(stripFullStack(body), [
+        var bodyStr = body.toString('utf8');
+        assert.deepEqual(stripFullStack(bodyStr), [
             'TAP version 13',
             '# deep equal',
             'not ok 1 should be strictly equal',
@@ -43,7 +43,7 @@ tap.test('deep equal failure', function (assert) {
             ''
         ]);
 
-        assert.deepEqual(getDiag(body), {
+        assert.deepEqual(getDiag(bodyStr), {
             operator: 'equal',
             expected: '{ b: 2 }',
             actual: '{ a: 1 }'
@@ -51,8 +51,6 @@ tap.test('deep equal failure', function (assert) {
     }));
 
     parser.once('assert', function (data) {
-        delete data.diag.stack;
-        delete data.diag.at;
         assert.deepEqual(data, {
             ok: false,
             id: 1,
@@ -60,7 +58,10 @@ tap.test('deep equal failure', function (assert) {
             diag: {
                 operator: 'equal',
                 expected: '{ b: 2 }',
-                actual: '{ a: 1 }'
+                actual: '{ a: 1 }',
+                // we don't care about these next two
+                stack: data.diag.stack,
+                at: data.diag.at
             },
             fullname: ''
         });
@@ -68,7 +69,7 @@ tap.test('deep equal failure', function (assert) {
 
     test('deep equal', function (t) {
         t.plan(1);
-        t.equal({a: 1}, {b: 2});
+        t.equal({ a: 1 }, { b: 2 });
     });
 });
 
@@ -80,8 +81,8 @@ tap.test('deep equal failure, depth 6, with option', function (assert) {
 
     stream.pipe(parser);
     stream.pipe(concat(function (body) {
-        body = body.toString('utf8');
-        assert.deepEqual(stripFullStack(body), [
+        var bodyStr = body.toString('utf8');
+        assert.deepEqual(stripFullStack(bodyStr), [
             'TAP version 13',
             '# deep equal',
             'not ok 1 should be strictly equal',
@@ -106,7 +107,7 @@ tap.test('deep equal failure, depth 6, with option', function (assert) {
             ''
         ]);
 
-        assert.deepEqual(getDiag(body), {
+        assert.deepEqual(getDiag(bodyStr), {
             operator: 'equal',
             expected: '{ a: { a1: { a2: { a3: { a4: { a5: 2 } } } } } }',
             actual: '{ a: { a1: { a2: { a3: { a4: { a5: 1 } } } } } }'
@@ -114,8 +115,6 @@ tap.test('deep equal failure, depth 6, with option', function (assert) {
     }));
 
     parser.once('assert', function (data) {
-        delete data.diag.stack;
-        delete data.diag.at;
         assert.deepEqual(data, {
             ok: false,
             id: 1,
@@ -123,13 +122,16 @@ tap.test('deep equal failure, depth 6, with option', function (assert) {
             diag: {
                 operator: 'equal',
                 expected: '{ a: { a1: { a2: { a3: { a4: { a5: 2 } } } } } }',
-                actual: '{ a: { a1: { a2: { a3: { a4: { a5: 1 } } } } } }'
+                actual: '{ a: { a1: { a2: { a3: { a4: { a5: 1 } } } } } }',
+                // we don't care about these next two
+                stack: data.diag.stack,
+                at: data.diag.at
             },
             fullname: ''
         });
     });
 
-    test('deep equal', {objectPrintDepth: 6}, function (t) {
+    test('deep equal', { objectPrintDepth: 6 }, function (t) {
         t.plan(1);
         t.equal({ a: { a1: { a2: { a3: { a4: { a5: 1 } } } } } }, { a: { a1: { a2: { a3: { a4: { a5: 2 } } } } } });
     });
@@ -143,8 +145,8 @@ tap.test('deep equal failure, depth 6, without option', function (assert) {
 
     stream.pipe(parser);
     stream.pipe(concat(function (body) {
-        body = body.toString('utf8');
-        assert.deepEqual(stripFullStack(body), [
+        var bodyStr = body.toString('utf8');
+        assert.deepEqual(stripFullStack(bodyStr), [
             'TAP version 13',
             '# deep equal',
             'not ok 1 should be strictly equal',
@@ -169,7 +171,7 @@ tap.test('deep equal failure, depth 6, without option', function (assert) {
             ''
         ]);
 
-        assert.deepEqual(getDiag(body), {
+        assert.deepEqual(getDiag(bodyStr), {
             operator: 'equal',
             expected: '{ a: { a1: { a2: { a3: { a4: [Object] } } } } }',
             actual: '{ a: { a1: { a2: { a3: { a4: [Object] } } } } }'
@@ -177,8 +179,6 @@ tap.test('deep equal failure, depth 6, without option', function (assert) {
     }));
 
     parser.once('assert', function (data) {
-        delete data.diag.stack;
-        delete data.diag.at;
         assert.deepEqual(data, {
             ok: false,
             id: 1,
@@ -186,7 +186,10 @@ tap.test('deep equal failure, depth 6, without option', function (assert) {
             diag: {
                 operator: 'equal',
                 expected: '{ a: { a1: { a2: { a3: { a4: [Object] } } } } }',
-                actual: '{ a: { a1: { a2: { a3: { a4: [Object] } } } } }'
+                actual: '{ a: { a1: { a2: { a3: { a4: [Object] } } } } }',
+                // we don't care about these next two
+                stack: data.diag.stack,
+                at: data.diag.at
             },
             fullname: ''
         });

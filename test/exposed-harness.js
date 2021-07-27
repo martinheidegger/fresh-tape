@@ -4,8 +4,8 @@ var tape = require('../');
 var tap = require('tap');
 var Writable = require('readable-stream').Writable;
 
-//Because this test passing depends on a failure,
-//we must direct the failing output of the inner test
+// Because this test passing depends on a failure,
+// we must direct the failing output of the inner test
 var mockSink = new Writable({
     write: function (_, _2, cb) {
         cb();
