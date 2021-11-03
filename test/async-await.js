@@ -12,9 +12,18 @@ if (Number(majorVersion) < 8) {
     process.exit(0); // eslint-disable-line no-process-exit
 }
 
+var node17 = Number(majorVersion) >= 17;
+
+var lengthMessage = 'Cannot read property \'length\' of null';
+try {
+    lengthMessage = null.length;
+} catch (e) {
+    lengthMessage = e.message; // differs in v8 6.9+ (node 16.9+)
+}
+
 tap.test('async1', function (t) {
     runProgram('async-await', 'async1.js', function (r) {
-        t.same(r.stdout.toString('utf8'), [
+        t.deepEqual(stripFullStack(r.stdout.toString('utf8')), [
             'TAP version 13',
             '# async1',
             'ok 1 before await',
@@ -24,8 +33,10 @@ tap.test('async1', function (t) {
             '# tests 2',
             '# pass  2',
             '',
-            '# ok'
-        ].join('\n') + '\n\n');
+            '# ok',
+            '',
+            ''
+        ]);
         t.same(r.exitCode, 0);
         t.same(r.stderr.toString('utf8'), '');
         t.end();
@@ -39,7 +50,7 @@ tap.test('async2', function (t) {
             return !(/^(\s+)at(\s+)<anonymous>$/).test(line);
         });
 
-        t.same(stripFullStack(lines.join('\n')), [
+        t.deepEqual(stripFullStack(lines.join('\n')), [
             'TAP version 13',
             '# async2',
             'ok 1 before await',
@@ -70,7 +81,7 @@ tap.test('async2', function (t) {
 
 tap.test('async3', function (t) {
     runProgram('async-await', 'async3.js', function (r) {
-        t.same(r.stdout.toString('utf8'), [
+        t.deepEqual(stripFullStack(r.stdout.toString('utf8')), [
             'TAP version 13',
             '# async3',
             'ok 1 before await',
@@ -80,8 +91,10 @@ tap.test('async3', function (t) {
             '# tests 2',
             '# pass  2',
             '',
-            '# ok'
-        ].join('\n') + '\n\n');
+            '# ok',
+            '',
+            ''
+        ]);
         t.same(r.exitCode, 0);
         t.same(r.stderr.toString('utf8'), '');
         t.end();
@@ -90,7 +103,7 @@ tap.test('async3', function (t) {
 
 tap.test('async4', function (t) {
     runProgram('async-await', 'async4.js', function (r) {
-        t.same(stripFullStack(r.stdout.toString('utf8')), [
+        t.deepEqual(stripFullStack(r.stdout.toString('utf8')), [
             'TAP version 13',
             '# async4',
             'ok 1 before await',
@@ -190,7 +203,7 @@ tap.test('sync-error', function (t) {
         });
         stderr = lines.join('\n');
 
-        t.same(stripFullStack(stderr), [
+        t.same(stripFullStack(stderr), [].concat(
             '$TEST/async-await/sync-error.js:7',
             '    throw new Error(\'oopsie\');',
             '    ^',
@@ -200,8 +213,12 @@ tap.test('sync-error', function (t) {
             '    at Test.bound [as _cb] ($TAPE/lib/test.js:$LINE:$COL)',
             '    at Test.run ($TAPE/lib/test.js:$LINE:$COL)',
             '    at Test.bound [as run] ($TAPE/lib/test.js:$LINE:$COL)',
+            node17 ? [
+                '',
+                'Node.js ' + process.version
+            ] : [],
             ''
-        ]);
+        ));
         t.end();
     });
 });
@@ -263,11 +280,11 @@ tap.test('async-bug', function (t) {
             '# async-error',
             'ok 1 before throw',
             'ok 2 should be strictly equal',
-            'not ok 3 TypeError: Cannot read property \'length\' of null',
+            'not ok 3 TypeError: ' + lengthMessage,
             '  ---',
             '    operator: error',
             '    stack: |-',
-            '      TypeError: Cannot read property \'length\' of null',
+            '      TypeError: ' + lengthMessage,
             '          at myCode ($TEST/async-await/async-bug.js:$LINE:$COL)',
             '          at Test.myTest ($TEST/async-await/async-bug.js:$LINE:$COL)',
             '  ...',

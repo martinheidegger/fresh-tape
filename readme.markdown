@@ -1,8 +1,8 @@
-# fresh-tape
+# fresh-tape <sup>[![Version Badge][npm-version-svg][package-url]]</sup>
 
 fresh tap-producing test harness for node and browsers
 
-[`tape`](https://npmjs.com/package/tape) is commited to keep the current node compatibility,
+[`tape`](https://npmjs.com/package/fresh-tape) is commited to keep the current node compatibility,
 which does not permit an update of major dependencies like `through` and `concat-stream`.
 This makes it difficult to use `tape` with webpack.
 
@@ -12,7 +12,13 @@ but otherwise is committed to stay compatible with tape.
 **`fresh-tape` can be compiled with webpack as-is!**
 
 [![github actions][actions-image]][actions-url]
-![tape](https://web.archive.org/web/20170612184731if_/http://substack.net/images/tape_drive.png)
+[![coverage][codecov-image]][codecov-url]
+[![dependency status][deps-svg]][deps-url]
+[![dev dependency status][dev-deps-svg]][dev-deps-url]
+[![License][license-image]][license-url]
+[![Downloads][downloads-image]][downloads-url]
+
+[![npm badge][npm-badge-png]][package-url]
 
 # example
 
@@ -548,5 +554,18 @@ test('third', function (t) {
 
 MIT
 
+[package-url]: https://npmjs.org/package/fresh-tape
+[npm-version-svg]: https://versionbadg.es/martinheidegger/fresh-tape.svg
+[deps-svg]: https://david-dm.org/martinheidegger/fresh-tape.svg
+[deps-url]: https://david-dm.org/martinheidegger/fresh-tape
+[dev-deps-svg]: https://david-dm.org/martinheidegger/fresh-tape/dev-status.svg
+[dev-deps-url]: https://david-dm.org/martinheidegger/fresh-tape#info=devDependencies
+[npm-badge-png]: https://nodei.co/npm/fresh-tape.png?downloads=true&stars=true
+[license-image]: https://img.shields.io/npm/l/fresh-tape.svg
+[license-url]: LICENSE
+[downloads-image]: https://img.shields.io/npm/dm/fresh-tape.svg
+[downloads-url]: https://npm-stat.com/charts.html?package=tape
+[codecov-image]: https://codecov.io/gh/martinheidegger/fresh-tape/branch/master/graphs/badge.svg
+[codecov-url]: https://app.codecov.io/gh/martinheidegger/fresh-tape/
 [actions-image]: https://img.shields.io/endpoint?url=https://github-actions-badge-u3jn4tfpocch.runkit.sh/martinheidegger/fresh-tape
 [actions-url]: https://github.com/martinheidegger/fresh-tape/actions
