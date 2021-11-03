@@ -23,7 +23,7 @@ declare function tape(opts: tape.TestOptions, cb: tape.TestCase): void;
 
 declare namespace tape {
     interface TestCase {
-        (test: Test): void;
+        (test: Test): void | Promise<void>;
     }
 
     /**
