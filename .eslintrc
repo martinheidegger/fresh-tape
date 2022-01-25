@@ -1,17 +1,17 @@
 {
     "root": true,
+    "extends": "@ljharb",
     "env": {
         "browser": true,
         "node": true,
     },
-    "extends": "@ljharb",
-    "globals": {
-        "Promise": false,
+    "parserOptions": {
+        "ecmaVersion": 5,
+        "allowReserved": false,
     },
     "rules": {
         "array-bracket-spacing": "off",
         "complexity": "off",
-        "eqeqeq": ["error", "always", { "null": "ignore" }],
         "func-style": "warn",
         "indent": ["error", 4],
         "no-magic-numbers": "off",
@@ -23,10 +23,9 @@
         "no-negated-condition": "off",
         "no-use-before-define": "warn",
         "no-underscore-dangle": "warn",
-        "operator-linebreak": ["error", "before"],
         "sort-keys": "warn",
     },
-    "ignorePatterns": [ "dist/*", "syntax-error.*" ],
+    "ignorePatterns": [ "dist/*", "syntax-error.*", "coverage/*", ".nyc_output/*" ],
     "overrides": [
         {
             "files": ["*.mjs", "test/import/package_type/*.js"],
@@ -70,10 +69,11 @@
                 "max-params": "off",
                 "no-continue": "off",
                 "no-invalid-this": "off",
+                "no-multi-assign": "off",
                 "no-param-reassign": "warn",
                 "no-plusplus": "warn",
-                "no-multi-assign": "off",
                 "no-restricted-syntax": "off",
+                "operator-linebreak": ["error", "before"],
             },
         },
         {
@@ -111,7 +111,6 @@
                 "max-lines-per-function": "off",
                 "no-plusplus": "off",
                 "no-throw-literal": "off",
-                "sort-keys": "off",
             },
         },
         {
