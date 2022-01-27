@@ -1,6 +1,6 @@
 {
     "name": "fresh-tape",
-    "version": "5.4.1",
+    "version": "5.5.0",
     "description": "fresh tap-producing test harness for node and browsers (with dependencies updated beyond node 4)",
     "main": "index.js",
     "browser": {
@@ -58,7 +58,7 @@
         "eclint": "^2.8.1",
         "ecstatic": "^4.1.4",
         "es-value-fixtures": "^1.2.1",
-        "eslint": "^8.6.0",
+        "eslint": "^8.7.0",
         "falafel": "^2.2.4",
         "in-publish": "^2.0.1",
         "js-yaml": "^4.1.0",
