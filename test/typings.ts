@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import tape = require('..');
+import * as tape from '..';
 
 var name: string;
 var cb: tape.TestCase;
@@ -210,6 +210,8 @@ tape(name, (test: tape.Test) => {
     test.throws(fn, CustomException);
     test.throws(fn, CustomException, msg);
     test.throws(fn, CustomException, msg);
+    test.throws(fn, 'message', 'message');
+    test.throws(fn, { message: 'message' });
 
     test.doesNotThrow(fn);
     test.doesNotThrow(fn, msg);
@@ -217,6 +219,8 @@ tape(name, (test: tape.Test) => {
     test.doesNotThrow(fn, exceptionExpected, msg);
     test.doesNotThrow(fn, CustomException);
     test.doesNotThrow(fn, CustomException, msg);
+    test.doesNotThrow(fn, 'message', 'message');
+    test.doesNotThrow(fn, { message: 'message' });
 
     test.test(name, st => {
         t = st;
