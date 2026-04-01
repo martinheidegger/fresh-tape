@@ -10,3 +10,8 @@ package-lock.json
 dist/
 coverage/
 .nyc_output/
+
+/test-baseline/
+/output/
+
+.tool-versions

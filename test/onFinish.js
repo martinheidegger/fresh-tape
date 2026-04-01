@@ -2,7 +2,7 @@
 
 var tap = require('tap');
 var tape = require('../');
-var Writable = require('readable-stream').Writable;
+var Writable = require('@leichtgewicht/readable-stream').Writable;
 
 // Because this test passing depends on a failure, we must direct the failing output of the inner test
 var mockSink = new Writable({

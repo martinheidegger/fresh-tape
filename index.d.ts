@@ -1,11 +1,7 @@
-// Type definitions for tape v4.13.2
-// Project: https://github.com/substack/tape
-// Definitions by: Bart van der Schoor <https://github.com/Bartvds>
-//                 Haoqun Jiang <https://github.com/sodatea>
-//                 Dennis Schwartz <https://github.com/DennisSchwartz>
-//                 Michael Henretty <https://github.com/mikehenrty>
-//                 Rafał Ostrowski <https://github.com/rostrowski>
-//                 Jordan Harband <https://github.com/ljharb>
+// Type definitions for fresh-tape (aligned with tape 5.9.x API surface)
+// Project: https://github.com/martinheidegger/fresh-tape
+// Based on definitions for tape by Bart van der Schoor, Haoqun Jiang, Dennis Schwartz,
+// Michael Henretty, Rafał Ostrowski, Jordan Harband
 
 /// <reference types="node" />
 
@@ -22,6 +18,14 @@ declare function tape(cb: tape.TestCase): void;
 declare function tape(opts: tape.TestOptions, cb: tape.TestCase): void;
 
 declare namespace tape {
+    /** Defer wiring the default stream until `tape.run()` is called. */
+    export function wait(): void;
+    /** Start the default TAP stream when `wait()` was used. */
+    export function run(): void;
+    /** Return the process-level harness (creates it on first use). */
+    export function getHarness(opts?: GetHarnessOptions): Harness;
+    /** Tap compat: alias for the default export (`tape` callable). */
+    export const test: typeof tape;
     interface TestCase {
         (test: Test): void | Promise<void>;
     }
@@ -33,6 +37,27 @@ declare namespace tape {
         skip?: boolean; // true/false. See test.skip.
         todo?: boolean; // true/false. Test will be allowed to fail.
         timeout?: number; // Set a timeout for the test, after which it will fail. See tape.timeoutAfter.
+        /** Max depth when printing objects in assertion output (or Infinity via env). */
+        objectPrintDepth?: number | string;
+    }
+
+    /**
+     * Options for `createHarness()` (not used by the default lazy export).
+     */
+    interface HarnessOptions {
+        autoclose?: boolean;
+        noOnly?: boolean;
+    }
+
+    /**
+     * Options for `getHarness()` when first creating the process harness.
+     */
+    interface GetHarnessOptions {
+        stream?: NodeJS.WritableStream;
+        objectMode?: boolean;
+        /** When false, skip registering process exit hooks (advanced). */
+        exit?: boolean;
+        noOnly?: boolean;
     }
 
     /**
@@ -49,6 +74,55 @@ declare namespace tape {
      */
     interface StreamOptions {
         objectMode?: boolean;
+    }
+
+    /**
+     * A dedicated harness instance (no `wait` / `getHarness` on the callable).
+     */
+    interface Harness {
+        (name: string, cb: TestCase): void;
+        (name: string, opts: TestOptions, cb: TestCase): void;
+        (cb: TestCase): void;
+        (opts: TestOptions, cb: TestCase): void;
+        createStream(opts?: StreamOptions): NodeJS.ReadableStream;
+        onFinish(cb: () => void): void;
+        onFailure(cb: () => void): void;
+        only(name: string, cb: TestCase): void;
+        only(name: string, opts: TestOptions, cb: TestCase): void;
+        only(cb: TestCase): void;
+        only(opts: TestOptions, cb: TestCase): void;
+        close(): void;
+        /** Present when the harness was created with `tape.wait()` + default stream wiring. */
+        run?(): void;
+        _exitCode: number;
+        _tests: Test[];
+        _results: any;
+    }
+
+    interface CaptureCallRecord {
+        args: any[];
+        receiver: any;
+        returned?: any;
+        threw?: boolean;
+    }
+
+    interface CaptureResults {
+        (): CaptureCallRecord[];
+        restore: () => void;
+    }
+
+    interface InterceptCall {
+        type: 'get' | 'set';
+        success: boolean;
+        value?: any;
+        args: any[];
+        receiver: any;
+        threw?: boolean;
+    }
+
+    interface InterceptResults {
+        (): InterceptCall[];
+        restore: () => void;
     }
 
     /**
@@ -80,7 +154,7 @@ declare namespace tape {
     /**
      * Create a new test harness instance, which is a function like test(), but with a new pending stack and test state.
      */
-    export function createHarness(): typeof tape;
+    export function createHarness(opts?: HarnessOptions): Harness;
 
     /**
      * Create a stream of output, bypassing the default output stream that writes messages to console.log().
@@ -88,7 +162,55 @@ declare namespace tape {
      */
     export function createStream(opts?: tape.StreamOptions): NodeJS.ReadableStream;
 
+    interface TestConstructor {
+        new (name: string, cb: TestCase): Test;
+        new (name: string, opts: TestOptions, cb: TestCase): Test;
+        new (cb: TestCase): Test;
+        new (opts: TestOptions, cb: TestCase): Test;
+        skip(name: string, cb: TestCase): Test;
+        skip(name: string, opts: TestOptions, cb: TestCase): Test;
+        skip(cb: TestCase): Test;
+        skip(opts: TestOptions, cb: TestCase): Test;
+    }
+
+    export const Test: TestConstructor;
+
     interface Test {
+        /**
+         * Run this test’s callback (normally invoked by the harness). Useful for advanced scenarios.
+         */
+        run(): void;
+
+        /**
+         * Register a function to run when the test ends (or subtest teardown order).
+         */
+        teardown(fn: () => void): void;
+
+        /**
+         * Spy on `obj[method]`; optional `implementation` replaces the original. Returns a `results` function
+         * (with `.restore`) that yields captured call records.
+         */
+        capture(
+            obj: object,
+            method: string | symbol,
+            implementation?: (...args: any[]) => any
+        ): CaptureResults;
+
+        /**
+         * Wrap a function to record calls on `.calls`.
+         */
+        captureFn<T extends (...args: any[]) => any>(original: T): T & { calls: CaptureCallRecord[] };
+
+        /**
+         * Replace a property with get/set interceptors; returns a `results` function (with `.restore`) of recorded accesses.
+         */
+        intercept(
+            obj: object,
+            property: string | symbol,
+            desc?: PropertyDescriptor,
+            strictMode?: boolean
+        ): InterceptResults;
+
         /**
          * Create a subtest with a new test handle st from cb(st) inside the current test.
          * cb(st) will only fire when t finishes.
@@ -217,20 +339,20 @@ declare namespace tape {
          * Assert that the function call fn() throws an exception.
          * expected, if present, must be a RegExp or Function, which is used to test the exception object.
          */
-        throws(fn: () => void, msg?: string): void;
-        throws(fn: () => void, exceptionExpected: RegExp | Function | Object | string, msg?: string): void;
+        throws(fn: () => void, msg?: string, extra?: AssertOptions): void;
+        throws(fn: () => void, exceptionExpected: RegExp | Function | Object | string, msg?: string, extra?: AssertOptions): void;
 
         /**
          * Assert that the function call fn() does not throw an exception.
          */
-        doesNotThrow(fn: () => void, msg?: string): void;
-        doesNotThrow(fn: () => void, exceptionExpected: RegExp | Function | Object | string, msg?: string): void;
+        doesNotThrow(fn: () => void, msg?: string, extra?: AssertOptions): void;
+        doesNotThrow(fn: () => void, exceptionExpected: RegExp | Function | Object | string, msg?: string, extra?: AssertOptions): void;
 
         /**
          * Print a message without breaking the tap output.
          * (Useful when using e.g. tap-colorize where output is buffered & console.log will print in incorrect order vis-a-vis tap output.)
          */
-        comment(msg: string): void;
+        comment(msg?: any): void;
 
         /**
          * Assert that string matches the RegExp regexp. Will throw (not just fail) when the first two arguments are the wrong type.
@@ -241,5 +363,11 @@ declare namespace tape {
          * Assert that string does not match the RegExp regexp. Will throw (not just fail) when the first two arguments are the wrong type.
          */
         doesNotMatch(actual: string, expected: RegExp, msg?: string, extra?: AssertOptions): void;
+
+        /**
+         * Call a custom assertion function with this test as `this` and optional extra arguments.
+         * The return value is passed through (e.g. a Promise for async assertions).
+         */
+        assertion(fn: (this: Test, ...args: any[]) => any, ...args: any[]): any;
     }
 }

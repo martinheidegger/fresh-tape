@@ -2,14 +2,16 @@
 
 'use strict';
 
+var path = require('path');
 var parseOpts = require('minimist');
-var objectKeys = require('object-keys');
 
 var opts = parseOpts(process.argv.slice(2), {
     alias: { r: 'require', i: 'ignore' },
-    string: ['require', 'ignore'],
-    boolean: ['only'],
-    default: { r: [], i: null, only: null }
+    string: [
+        'require', 'ignore', 'ignore-pattern'
+    ],
+    boolean: ['only', 'strict'],
+    default: { r: [], i: null, 'ignore-pattern': null, only: null, strict: false }
 });
 
 if (typeof opts.only === 'boolean') {
@@ -24,7 +26,7 @@ if (typeof opts.require === 'string') {
 
 var resolveModule;
 opts.require.forEach(function (module) {
-    var options = { basedir: cwd, extensions: objectKeys(require.extensions) };
+    var options = { basedir: cwd, extensions: Object.keys(require.extensions) };
     if (module) {
         if (!resolveModule) { resolveModule = require('resolve').sync; }
         // This check ensures we ignore `-r ""`, trailing `-r`, or other silly things the user might (inadvertently) be doing.
@@ -33,53 +35,70 @@ opts.require.forEach(function (module) {
 });
 
 var resolvePath = require('path').resolve;
+var requireResolve = require.resolve;
 
-var matcher;
+var ignoreStr = '';
 if (typeof opts.ignore === 'string') {
     var readFileSync = require('fs').readFileSync;
     try {
-        var ignoreStr = readFileSync(resolvePath(cwd, opts.ignore || '.gitignore'), 'utf-8');
+        ignoreStr = readFileSync(resolvePath(cwd, opts.ignore || '.gitignore'), 'utf-8');
     } catch (e) {
         console.error(e.message);
         process.exit(2);
     }
+}
+
+if (typeof opts['ignore-pattern'] === 'string') {
+    ignoreStr += '\n' + opts['ignore-pattern'];
+}
+
+var matcher;
+if (ignoreStr) {
     var ignore = require('dotignore');
     matcher = ignore.createMatcher(ignoreStr);
 }
 
-var glob = require('glob');
+var glob = require('globv7');
 
 var files = opts._.reduce(function (result, arg) {
-    // If glob does not match, `files` will be an empty array.
-    // Note: `glob.sync` may throw an error and crash the node process.
-    var globFiles = glob.sync(arg);
+    if (glob.hasMagic(arg)) {
+        // If glob does not match, `files` will be an empty array.
+        // Note: `glob.sync` may throw an error and crash the node process.
+        var globFiles = glob.sync(arg);
 
-    if (!Array.isArray(globFiles)) {
-        throw new TypeError('unknown error: glob.sync("' + arg + '") did not return an array or throw. Please report this.');
+        if (!Array.isArray(globFiles)) {
+            throw new TypeError('unknown error: glob.sync("' + arg + '") did not return an array or throw. Please report this.');
+        }
+
+        // Workaround for globv7 (glob v7) always replacing backslashes with forward slashes on windows.
+        // This causes dotignore to not match the paths properly.
+        // Newer major `glob` releases fix path style but require newer Node; we use `globv7` instead.
+        // If this workaround is removed, ensure dotignore still matches paths on Windows; sort glob
+        // results if you need deterministic order.
+        // (also, backslashes and forward slashes should be ordered the same)
+        if (path.sep === '\\') {
+            globFiles = globFiles.map(function (globFile) {
+                return globFile.replace(/\//g, '\\');
+            });
+        }
+
+        return result.concat(globFiles);
     }
-
-    return result.concat(globFiles);
+    return result.concat(arg);
 }, []).filter(function (file) {
     return !matcher || !matcher.shouldIgnore(file);
 }).map(function (file) {
-    return resolvePath(cwd, file);
+    return requireResolve(resolvePath(cwd, file));
 });
 
-var hasImport = require('has-dynamic-import');
-
-hasImport().then(function (hasSupport) {
-    // the nextTick callback gets called outside the promise chain, avoiding
-    // promises and unhandled rejections when only loading commonjs files
-    process.nextTick(importFiles, hasSupport);
-});
+if (opts.strict && files.length === 0) {
+    console.error('No test files found!');
+    process.exit(127);
+}
 
 var tape = require('../');
 
-function importFiles(hasSupport) {
-    if (!hasSupport) {
-        return files.forEach(function (x) { require(x); });
-    }
-
+var importFiles = function () {
     var importOrRequire = require('./import-or-require');
 
     tape.wait();
@@ -90,7 +109,14 @@ function importFiles(hasSupport) {
         }) : importOrRequire(file);
     }, null);
 
-    return filesPromise ? filesPromise.then(function () { tape.run(); }) : tape.run();
-}
+    if (filesPromise) {
+        filesPromise.then(function () { tape.run(); });
+    } else {
+        tape.run();
+    }
+};
+
+// nextTick runs outside any promise chain, avoiding unhandled rejections when only loading CJS files
+process.nextTick(importFiles);
 
 // vim: ft=javascript

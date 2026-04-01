@@ -1,13 +1,27 @@
-# gitignore
+# Keep the published tarball small: runtime code, types, license, changelog, readme, examples.
 
-/node_modules
-
-# Only apps should have lockfiles
-yarn.lock
-package-lock.json
-
-# coverage data
+# Dependencies & build output
+node_modules/
+dist/
 coverage/
 .nyc_output/
 
-.github/workflows
+# Lockfiles (this package does not ship a lockfile)
+package-lock.json
+yarn.lock
+
+# Tests and test harness (consumers do not need the full suite)
+# Leading slash: only the repo-root `test/` dir, not e.g. example/stream/test/
+/test/
+
+# Maintainer-only tooling and planning
+/.github/
+/scripts/
+/project-goals/
+/test-baseline/
+
+# Editor / local tool config (not needed to run the package)
+.editorconfig
+.eslintrc
+.nycrc
+.tool-versions

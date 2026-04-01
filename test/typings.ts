@@ -33,8 +33,23 @@ var rs: NodeJS.ReadableStream;
 rs = tape.createStream();
 rs = tape.createStream(sopts);
 
-var htest: typeof tape;
+var htest: tape.Harness;
 htest = tape.createHarness();
+htest.close();
+htest.onFinish(() => {});
+htest.onFailure(() => {});
+htest._exitCode = 0;
+
+tape.wait();
+tape.run();
+var gh: tape.Harness = tape.getHarness();
+gh = tape.getHarness({ objectMode: true, exit: false });
+
+tape.test(cb);
+tape.test.skip(cb);
+
+var skipped: tape.Test = tape.Test.skip(cb);
+var constructed: tape.Test = new tape.Test(name, cb);
 
 class CustomException extends Error {
     constructor(message?: string) {
@@ -212,6 +227,8 @@ tape(name, (test: tape.Test) => {
     test.throws(fn, CustomException, msg);
     test.throws(fn, 'message', 'message');
     test.throws(fn, { message: 'message' });
+    test.throws(fn, msg, extra);
+    test.throws(fn, exceptionExpected, msg, extra);
 
     test.doesNotThrow(fn);
     test.doesNotThrow(fn, msg);
@@ -221,6 +238,20 @@ tape(name, (test: tape.Test) => {
     test.doesNotThrow(fn, CustomException, msg);
     test.doesNotThrow(fn, 'message', 'message');
     test.doesNotThrow(fn, { message: 'message' });
+    test.doesNotThrow(fn, msg, extra);
+    test.doesNotThrow(fn, exceptionExpected, msg, extra);
+
+    test.run();
+    test.teardown(() => {});
+    var cap = test.capture({}, 'x');
+    cap();
+    cap.restore();
+    test.capture({}, Symbol.iterator, () => 1);
+    var capFn = test.captureFn(fn);
+    capFn.calls;
+    var inter = test.intercept({}, 'n', { value: 0, configurable: true });
+    inter();
+    inter.restore;
 
     test.test(name, st => {
         t = st;
@@ -231,6 +262,18 @@ tape(name, (test: tape.Test) => {
     });
 
     test.comment(msg);
+    test.comment();
+
+    test.assertion(function (this: tape.Test) {
+        this.pass();
+    });
+    test.assertion(function (this: tape.Test, a: string) {
+        this.pass(a);
+    }, 'label');
+    var assertionRet: unknown = test.assertion(function (this: tape.Test) {
+        return Promise.resolve();
+    });
+    void assertionRet;
 
     test.match(actual, regex);
     test.match(actual, regex, msg);

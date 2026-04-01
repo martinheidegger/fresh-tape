@@ -3,8 +3,8 @@
 var defined = require('defined');
 var createDefaultStream = require('./lib/default_stream');
 var Test = require('./lib/test');
-var createResult = require('./lib/results');
-var Transform = require('readable-stream').Transform;
+var Results = require('./lib/results');
+var Transform = require('@leichtgewicht/readable-stream').Transform;
 
 var canEmitExit = typeof process !== 'undefined' && process
     && typeof process.on === 'function' && process.browser !== true;
@@ -13,6 +13,14 @@ var canExit = typeof process !== 'undefined' && process
 module.exports = (function () {
     var wait = false;
     var harness;
+
+    function getHarness(opts) {
+        if (!harness) {
+            harness = createExitHarness(opts || {}, wait);
+        }
+        return harness;
+    }
+
     var lazyLoad = function () {
         // eslint-disable-next-line no-invalid-this
         return getHarness().apply(this, arguments);
@@ -23,9 +31,9 @@ module.exports = (function () {
     };
 
     lazyLoad.run = function () {
-        var run = getHarness().run;
+        var runHarness = getHarness().run;
 
-        if (run) { run(); }
+        if (runHarness) { runHarness(); }
     };
 
     lazyLoad.only = function () {
@@ -57,23 +65,32 @@ module.exports = (function () {
     lazyLoad.getHarness = getHarness;
 
     return lazyLoad;
-
-    function getHarness(opts) {
-        if (!opts) { opts = {}; }
-        opts.autoclose = !canEmitExit;
-        if (!harness) { harness = createExitHarness(opts, wait); }
-        return harness;
-    }
 }());
 
 function createExitHarness(conf, wait) {
     var config = conf || {};
+    var noOnly = config.noOnly;
+    var objectMode = config.objectMode;
+    var cStream = config.stream;
+    var exit = config.exit;
+
     var harness = createHarness({
-        autoclose: defined(config.autoclose, false),
-        noOnly: defined(conf.noOnly, defined(process.env.NODE_TAPE_NO_ONLY_TEST, false))
+        autoclose: !canEmitExit,
+        noOnly: defined(noOnly, defined(process.env.NODE_TAPE_NO_ONLY_TEST, false))
     });
     var running = false;
     var ended = false;
+
+    function run() {
+        if (running) { return; }
+        running = true;
+        var stream = harness.createStream({ objectMode: objectMode });
+        var es = stream.pipe(cStream || createDefaultStream());
+        if (canEmitExit && es) {
+            es.on('error', function () { harness._exitCode = 1; });
+        }
+        stream.on('end', function () { ended = true; });
+    }
 
     if (wait) {
         harness.run = run;
@@ -81,7 +98,7 @@ function createExitHarness(conf, wait) {
         run();
     }
 
-    if (config.exit === false) { return harness; }
+    if (exit === false) { return harness; }
     if (!canEmitExit || !canExit) { return harness; }
 
     process.on('exit', function (code) {
@@ -112,17 +129,6 @@ function createExitHarness(conf, wait) {
     });
 
     return harness;
-
-    function run() {
-        if (running) { return; }
-        running = true;
-        var stream = harness.createStream({ objectMode: config.objectMode });
-        var es = stream.pipe(config.stream || createDefaultStream());
-        if (canEmitExit) {
-            es.on('error', function () { harness._exitCode = 1; });
-        }
-        stream.on('end', function () { ended = true; });
-    }
 }
 
 module.exports.createHarness = createHarness;
@@ -131,7 +137,9 @@ module.exports.test = module.exports; // tap compat
 module.exports.test.skip = Test.skip;
 
 function createHarness(conf_) {
-    var results = createResult();
+    var envTodoIsOK = typeof process !== 'undefined' && process.env
+        && process.env.TODO_IS_OK === '1';
+    var results = new Results({ todoIsOK: !!envTodoIsOK });
     if (!conf_ || conf_.autoclose !== false) {
         results.once('done', function () { results.close(); });
     }
@@ -171,7 +179,7 @@ function createHarness(conf_) {
     var only = false;
     test.only = function () {
         if (only) { throw new Error('there can only be one only test'); }
-        if (conf_.noOnly) { throw new Error('`only` tests are prohibited'); }
+        if (conf_ && conf_.noOnly) { throw new Error('`only` tests are prohibited'); }
         only = true;
         var t = test.apply(null, arguments);
         results.only(t);

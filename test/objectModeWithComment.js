@@ -2,7 +2,7 @@
 
 var tap = require('tap');
 var tape = require('../');
-var Writable = require('readable-stream').Writable;
+var Writable = require('@leichtgewicht/readable-stream').Writable;
 
 tap.test('test.comment() in objectMode', function (assert) {
     var objects = [];

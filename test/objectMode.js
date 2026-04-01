@@ -2,8 +2,7 @@
 
 var tap = require('tap');
 var tape = require('../');
-var forEach = require('for-each');
-var Writable = require('readable-stream').Writable;
+var Writable = require('@leichtgewicht/readable-stream').Writable;
 
 tap.test('object results', function (assert) {
     var objects = [];
@@ -24,11 +23,15 @@ tap.test('object results', function (assert) {
 
             assert.equal(objects.length, 13);
 
-            forEach(objects, function (object) {
+            objects.forEach(function (object) {
                 if (object.type === 'assert') {
                     asserts++;
                 } else if (object.type === 'test') {
                     testIds.push(object.id);
+
+                    if (object.name === 'child1' || object.name === 'child2' || object.name === 'child3') {
+                        assert.equal(object.parent, 0, 'nested test rows expose parent id (878a500)');
+                    }
 
                     if (object.skip) {
                         skips++;
@@ -36,7 +39,7 @@ tap.test('object results', function (assert) {
                         todos++;
                     }
                 } else if (object.type === 'end') {
-                    endIds.push(object.text);
+                    endIds.push(object.test);
                     // test object should exist
                     assert.notEqual(testIds.indexOf(object.test), -1);
                 }

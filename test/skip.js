@@ -4,7 +4,7 @@ var test = require('../');
 
 var concat = require('concat-stream');
 var tap = require('tap');
-var Writable = require('readable-stream').Writable;
+var Writable = require('@leichtgewicht/readable-stream').Writable;
 
 // Because this test passing depends on a failure,
 // we must direct the failing output of the inner test

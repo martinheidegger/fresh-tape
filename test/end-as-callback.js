@@ -1,7 +1,6 @@
 'use strict';
 
 var tap = require('tap');
-var forEach = require('for-each');
 var tape = require('../');
 var concat = require('concat-stream');
 
@@ -70,7 +69,7 @@ function fakeAsyncWriteFail(name, cb) {
 function getStackTrace(rows) {
     var stacktrace = '  ---\n';
     var extract = false;
-    forEach(rows.toString('utf8').split('\n'), function (row) {
+    rows.toString('utf8').split('\n').forEach(function (row) {
         if (!extract) {
             if (row.indexOf('---') > -1) { // start of stack trace
                 extract = true;

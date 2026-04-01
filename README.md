@@ -1,6 +1,6 @@
-# fresh-tape <sup>[![Version Badge][npm-version-svg][package-url]]</sup>
+# fresh-tape <sup>[![Version Badge][npm-version-svg]][package-url]</sup>
 
-fresh tap-producing test harness for node and browsers
+[TAP](https://testanything.org/)-producing test harness for node and browsers
 
 [`tape`](https://npmjs.com/package/fresh-tape) is commited to keep the current node compatibility,
 which does not permit an update of major dependencies like `through` and `concat-stream`.
@@ -11,10 +11,27 @@ but otherwise is committed to stay compatible with tape.
 
 **`fresh-tape` can be compiled with webpack as-is!**
 
+# Browser Support
+
+The **`testling`** field in [`package.json`](./package.json) records browser targets intended for bundles (for example after webpack). It is legacy [Testling-CI](https://ci.testling.com/guide/advanced_configuration) metadata; this repo does not run that service on every push, though `npm run lint` still builds a production webpack bundle from [`index.js`](./index.js).
+
+Declared ranges (see `testling.browsers` and `testling.files` in `package.json`):
+
+| Target | `package.json` entry | Typical meaning |
+|--------|----------------------|-----------------|
+| Chrome | `chrome/45..latest` | Chrome **45** and newer |
+| Firefox | `firefox/34..latest` | Firefox **34** and newer |
+| Safari | `safari/9..latest` | Safari **9** and newer |
+| Opera | `opera/32..latest` | Opera **32** and newer |
+| iPhone | `iphone/9` | Mobile Safari on **iOS 9** or later |
+| iPad | `ipad/9` | Mobile Safari on **iPad with iOS 9** or later |
+
+Browser-side tests are expected under `test/browser/*.js` (per `testling.files`). Older engines than the table above may need extra transpilation or polyfills beyond what this package ships.
+
+Method and CLI documentation below is aligned with upstream [tape](https://github.com/tape-testing/tape) **v5.9.0** `readme.markdown` (including updates between **v5.6.0** and **v5.9.0**), except for **fresh-tape** naming, the **CLI: ESM and dynamic `import`** section, `--strict` / `engines`, and other fork-specific notes.
+
 [![github actions][actions-image]][actions-url]
 [![coverage][codecov-image]][codecov-url]
-[![dependency status][deps-svg]][deps-url]
-[![dev dependency status][dev-deps-svg]][dev-deps-url]
 [![License][license-image]][license-url]
 [![Downloads][downloads-image]][downloads-url]
 
@@ -71,23 +88,29 @@ example:
 $ fresh-tape tests/**/*.js
 ```
 
-`fresh-tape`'s arguments are passed to the [`glob`](https://www.npmjs.com/package/glob) module.
-If you want `glob` to perform the expansion on a system where the shell performs such expansion, quote the arguments as necessary:
+`fresh-tape`'s arguments are passed to the [`globv7`](https://www.npmjs.com/package/globv7) module (a maintained fork of `glob` v7).
+If you want `globv7` to perform the expansion on a system where the shell performs such expansion, quote the arguments as necessary:
 
 ```sh
 $ fresh-tape 'tests/**/*.js'
 $ fresh-tape "tests/**/*.js"
 ```
 
+If you want `fresh-tape` to exit with a nonzero status when no test files are found, pass `--strict` (see [`--strict`](#--strict) below):
+
+```sh
+$ fresh-tape --strict 'tests/**/*.js'
+```
+
 ## Preloading modules
 
-Additionally, it is possible to make `fresh-tape` load one or more modules before running any tests, by using the `-r` or `--require` flag. Here's an example that loads [babel-register](http://babeljs.io/docs/usage/require/) before running any tests, to allow for JIT compilation:
+Additionally, it is possible to make `fresh-tape` load one or more modules before running any tests, by using the `-r` or `--require` flag. Here's an example that loads [babel-register](https://babeljs.io/docs/usage/require/) before running any tests, to allow for JIT compilation:
 
 ```sh
 $ fresh-tape -r babel-register tests/**/*.js
 ```
 
-Depending on the module you're loading, you may be able to parameterize it using environment variables or auxiliary files. Babel, for instance, will load options from [`.babelrc`](http://babeljs.io/docs/usage/babelrc/) at runtime.
+Depending on the module you're loading, you may be able to parameterize it using environment variables or auxiliary files. Babel, for instance, will load options from [`.babelrc`](https://babeljs.io/docs/usage/babelrc/) at runtime.
 
 The `-r` flag behaves exactly like node's `require`, and uses the same module resolution algorithm. This means that if you need to load local modules, you have to prepend their path with `./` or `../` accordingly.
 
@@ -99,11 +122,17 @@ $ fresh-tape -r ./my/local/module tests/**/*.js
 
 Please note that all modules loaded using the `-r` flag will run *before* any tests, regardless of when they are specified. For example, `fresh-tape -r a b -r c` will actually load `a` and `c` *before* loading `b`, since they are flagged as required modules.
 
-# things that go well with tape
+## CLI: ESM and dynamic `import`
+
+Upstream `tape` uses the `has-dynamic-import` package to detect whether `import()` is available and, when not, loads every test file with synchronous `require()` only. **fresh-tape does not do that** The `fresh-tape` binary always loads test files through `import-or-require`, which uses dynamic `import()` for ESM (`.mjs` and `package.json` `"type":"module"` `.js`). There is **no** runtime probe and **no** fallback path for runtimes that lack `import()`.
+
+Use a Node version that supports dynamic `import()` from CommonJS (see `engines` in `package.json`; **Node ≥ 12**). Older Node releases cannot run this CLI entry for ESM tests; stick to CommonJS test files if you must target them, and prefer a newer Node for full parity with upstream `tape`’s CLI behavior on mixed ESM/CJS suites.
+
+# Things that go well with tape
 
 `fresh-tape` maintains a fairly minimal core. Additional features are usually added by using another module alongside `fresh-tape`.
 
-## pretty reporters
+## Pretty reporters
 
 The default TAP output is good for machines and humans that are robots.
 
@@ -111,7 +140,7 @@ If you want a more colorful / pretty output there are lots of modules on npm tha
 
 - [tap-spec](https://github.com/scottcorgan/tap-spec)
 - [tap-dot](https://github.com/scottcorgan/tap-dot)
-- [faucet](https://github.com/substack/faucet)
+- [faucet](https://github.com/tape-testing/faucet)
 - [tap-bail](https://github.com/juliangruber/tap-bail)
 - [tap-browser-color](https://github.com/kirbysayshi/tap-browser-color)
 - [tap-json](https://github.com/gummesson/tap-json)
@@ -137,11 +166,11 @@ If you want a more colorful / pretty output there are lots of modules on npm tha
 
 To use them, try `node test/index.js | tap-spec` or pipe it into one of the modules of your choice!
 
-## uncaught exceptions
+## Uncaught Exceptions
 
 By default, uncaught exceptions in your tests will not be intercepted, and will cause `fresh-tape` to crash. If you find this behavior undesirable, use [`tape-catch`](https://github.com/michaelrhodes/tape-catch) to report any exceptions as TAP errors.
 
-## other
+## Other
 
 - CoffeeScript support with https://www.npmjs.com/package/coffeetape
 - ES6 support with https://www.npmjs.com/package/babel-tape-runner or https://www.npmjs.com/package/buble-tape-runner
@@ -151,7 +180,7 @@ By default, uncaught exceptions in your tests will not be intercepted, and will 
 - In-process reporting with https://github.com/DavidAnson/tape-player
 - Describe blocks with https://github.com/mattriley/tape-describe
 
-# command-line flags
+# Command-line Flags
 
 While running tests, top-level configurations can be passed via the command line to specify desired behavior.
 
@@ -167,13 +196,34 @@ This is used to load modules before running tests and is explained extensively i
 
 **Alias**: `-i`
 
-This flag is used when tests from certain folders and/or files are not intended to be run. It defaults to `.gitignore` file when passed with no argument.
+This flag is used when tests from certain folders and/or files are not intended to be run.
+The argument is a path to a file that contains the patterns to be ignored.
+It defaults to `.gitignore` when passed with no argument.
 
 ```sh
-tape -i .ignore **/*.js
+fresh-tape -i .ignore '**/*.js'
 ```
 
 An error is thrown if the specified file passed as argument does not exist.
+
+## --ignore-pattern
+
+Same functionality as `--ignore`, but passing the pattern directly instead of an ignore file.
+If both `--ignore` and `--ignore-pattern` are given, the `--ignore-pattern` argument is appended to the content of the ignore file.
+
+```sh
+fresh-tape --ignore-pattern 'integration_tests/**/*.js' '**/*.js'
+```
+
+## --strict
+
+When `--strict` is set and **no** test files are matched after globbing and ignore rules, the process exits with code **127** and prints `No test files found!` on stderr. Without `--strict`, zero files yields an empty successful TAP run (`1..0`, exit 0).
+
+Use `--no-strict` to turn strict mode off explicitly if needed.
+
+```sh
+fresh-tape --strict 'tests/**/*.js'
+```
 
 ## --no-only
 This is particularly useful in a CI environment where an [only test](#testonlyname-opts-cb) is not supposed to go unnoticed.
@@ -181,14 +231,14 @@ This is particularly useful in a CI environment where an [only test](#testonlyna
 By passing the `--no-only` flag, any existing [only test](#testonlyname-opts-cb) causes tests to fail.
 
 ```sh
-tape --no-only **/*.js
+fresh-tape --no-only '**/*.js'
 ```
 
 Alternatively, the environment variable `NODE_TAPE_NO_ONLY_TEST` can be set to `true` to achieve the same behavior; the command-line flag takes precedence.
 
 # methods
 
-The assertion methods in `tape` are heavily influenced or copied from the methods in [node-tap](https://github.com/isaacs/node-tap).
+The assertion methods in `fresh-tape` are heavily influenced or copied from the methods in [node-tap](https://github.com/isaacs/node-tap) (same surface as upstream [`tape`](https://www.npmjs.com/package/tape) 5.9.x).
 
 ```js
 var test = require('fresh-tape')
@@ -206,6 +256,8 @@ Available `opts` options are:
 - opts.objectPrintDepth = 5. Configure max depth of expected / actual object printing. Environmental variable `NODE_TAPE_OBJECT_PRINT_DEPTH` can set the desired default depth for all tests; locally-set values will take precedence.
 - opts.todo = true/false. Test will be allowed to fail.
 
+If the environment variable `TODO_IS_OK` is set to `1`, failed assertions in **todo** tests are still emitted as `ok` in TAP (with `# TODO` and a diagnostic block), and counts toward the pass total. This matches [tape](https://github.com/ljharb/tape)’s behavior when migrating CI that treats todo failures as non-fatal.
+
 If you forget to `t.plan()` out how many assertions you are going to run and you don't call `t.end()` explicitly, or return a Promise that eventually settles, your test will hang.
 
 If `cb` returns a Promise, it will be implicitly awaited. If that promise rejects, the test will be failed; if it fulfills, the test will end. Explicitly calling `t.end()` while also returning a Promise that fulfills is an error.
@@ -216,13 +268,13 @@ Generate a new test that will be skipped over.
 
 ## test.onFinish(fn)
 
-The onFinish hook will get invoked when ALL `tape` tests have finished right before `tape` is about to print the test summary.
+The onFinish hook will get invoked when ALL `fresh-tape` tests have finished right before `fresh-tape` is about to print the test summary.
 
 `fn` is called with no arguments, and its return value is ignored.
 
 ## test.onFailure(fn)
 
-The onFailure hook will get invoked whenever any `tape` tests has failed.
+The onFailure hook will get invoked whenever any `fresh-tape` test has failed.
 
 `fn` is called with no arguments, and its return value is ignored.
 
@@ -301,13 +353,13 @@ Aliases: `t.notLooseEquals()`
 
 ## t.deepEqual(actual, expected, msg)
 
-Assert that `actual` and `expected` have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/substack/node-deep-equal) with strict comparisons (`===`) on leaf nodes and an optional description of the assertion `msg`.
+Assert that `actual` and `expected` have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/inspect-js/node-deep-equal) with strict comparisons (`===`) on leaf nodes and an optional description of the assertion `msg`.
 
 Aliases: `t.deepEquals()`, `t.isEquivalent()`, `t.same()`
 
 ## t.notDeepEqual(actual, expected, msg)
 
-Assert that `actual` and `expected` do not have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/substack/node-deep-equal) with strict comparisons (`===`) on leaf nodes and an optional description of the assertion `msg`.
+Assert that `actual` and `expected` do not have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/inspect-js/node-deep-equal) with strict comparisons (`===`) on leaf nodes and an optional description of the assertion `msg`.
 
 Aliases: `t.notDeepEquals`, `t.notEquivalent()`, `t.notDeeply()`, `t.notSame()`,
 `t.isNotDeepEqual()`, `t.isNotDeeply()`, `t.isNotEquivalent()`,
@@ -315,17 +367,15 @@ Aliases: `t.notDeepEquals`, `t.notEquivalent()`, `t.notDeeply()`, `t.notSame()`,
 
 ## t.deepLooseEqual(actual, expected, msg)
 
-Assert that `actual` and `expected` have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/substack/node-deep-equal) with loose comparisons (`==`) on leaf nodes and an optional description of the assertion `msg`.
+Assert that `actual` and `expected` have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/inspect-js/node-deep-equal) with loose comparisons (`==`) on leaf nodes and an optional description of the assertion `msg`.
 
 ## t.notDeepLooseEqual(actual, expected, msg)
 
-Assert that `actual` and `expected` do not have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/substack/node-deep-equal) with loose comparisons (`==`) on leaf nodes and an optional description of the assertion `msg`.
-
-Aliases: `t.notLooseEqual()`, `t.notLooseEquals()`
+Assert that `actual` and `expected` do not have the same structure and nested values using [node's deepEqual() algorithm](https://github.com/inspect-js/node-deep-equal) with loose comparisons (`==`) on leaf nodes and an optional description of the assertion `msg`.
 
 ## t.throws(fn, expected, msg)
 
-Assert that the function call `fn()` throws an exception. `expected`, if present, must be a `RegExp`, `Function`, or `Object`. The `RegExp` matches the string representation of the exception, as generated by `err.toString()`. For example, if you set `expected` to `/user/`, the test will pass only if the string representation of the exception contains the word `user`. Any other exception will result in a failed test. The `Function` is the exception thrown (e.g. `Error`). `Object` in this case corresponds to a so-called validation object, in which each property is tested for strict deep equality. As an example, see the following two tests--each passes a validation object to `t.throws()` as the second parameter. The first test will pass, because all property values in the actual error object are deeply strictly equal to the property values in the validation object.
+Assert that the function call `fn()` throws an exception. `expected`, if present, must be a `RegExp`, `Function`, or `Object`. The `RegExp` matches the string representation of the exception, as generated by `err.toString()`. For example, if you set `expected` to `/user/`, the test will pass only if the string representation of the exception contains the word `user`. Any other exception will result in a failed test. The `Function` could be the constructor for the Error type thrown, or a predicate function to be called with that exception. `Object` in this case corresponds to a so-called validation object, in which each property is tested for strict deep equality. As an example, see the following two tests--each passes a validation object to `t.throws()` as the second parameter. The first test will pass, because all property values in the actual error object are deeply strictly equal to the property values in the validation object.
 ```
     const err = new TypeError("Wrong value");
     err.code = 404;
@@ -382,7 +432,8 @@ You may pass the same options that [`test()`](#testname-opts-cb) accepts.
 
 ## t.comment(message)
 
-Print a message without breaking the tap output. (Useful when using e.g. `tap-colorize` where output is buffered & `console.log` will print in incorrect order vis-a-vis tap output.)
+Print a message without breaking the tap output.
+(Useful when using e.g. `tap-colorize` where output is buffered & `console.log` will print in incorrect order vis-a-vis tap output.)
 
 Multiline output will be split by `\n` characters, and each one printed as a comment.
 
@@ -394,6 +445,69 @@ Assert that `string` matches the RegExp `regexp`. Will fail when the first two a
 
 Assert that `string` does not match the RegExp `regexp`. Will fail when the first two arguments are the wrong type.
 
+## t.capture(obj, method, implementation = () => {})
+
+Replaces `obj[method]` with the supplied implementation.
+`obj` must be a non-primitive, `method` must be a valid property key (string or symbol), and `implementation`, if provided, must be a function.
+
+Calling the returned `results()` function will return an array of call result objects.
+The array of calls will be reset whenever the function is called.
+Call result objects will match one of these forms:
+
+  - `{ args: [x, y, z], receiver: o, returned: a }`
+  - `{ args: [x, y, z], receiver: o, threw: true }`
+
+The replacement will automatically be restored on test teardown.
+You can restore it manually, if desired, by calling `.restore()` on the returned results function.
+
+Modeled after [tap](https://tapjs.github.io/tapjs/modules/_tapjs_intercept.html).
+
+## t.captureFn(original)
+
+Wraps the supplied function.
+The returned wrapper has a `.calls` property, which is an array that will be populated with call result objects, described under `t.capture()`.
+
+Modeled after [tap](https://tapjs.github.io/tapjs/modules/_tapjs_intercept.html).
+
+## t.intercept(obj, property, desc = {}, strictMode = true)
+
+Similar to `t.capture()`, but can be used to track get/set operations for any arbitrary property.
+Calling the returned `results()` function will return an array of call result objects.
+The array of calls will be reset whenever the function is called.
+Call result objects will match one of these forms:
+
+  - `{ type: 'get', value: '1.2.3', success: true, args: [x, y, z], receiver: o }`
+  - `{ type: 'set', value: '2.4.6', success: false, args: [x, y, z], receiver: o }`
+
+If `strictMode` is `true`, and `writable` is `false`, and no `get` or `set` is provided, an exception will be thrown when `obj[property]` is assigned to.
+If `strictMode` is `false` in this scenario, nothing will be set, but the attempt will still be logged.
+
+Providing both `desc.get` and `desc.set` are optional and can still be useful for logging get/set attempts.
+
+`desc` must be a valid property descriptor, meaning that `get`/`set` are mutually exclusive with `writable`/`value`.
+Additionally, explicitly setting `configurable` to `false` is not permitted, so that the property can be restored.
+
+## t.assertion(fn, ...args)
+
+If you want to write your own custom assertions, you can invoke them with this method: `fn` is called with the test instance as `this`, and any additional arguments you pass after `fn`.
+
+The return value of `fn` is returned from `t.assertion` (for example, so a test callback can `return t.assertion(...)` when `fn` yields a Promise).
+
+```js
+function isAnswer(value, msg) {
+    // eslint-disable-next-line no-invalid-this
+    this.equal(value, 42, msg || 'value must be the answer to life, the universe, and everything');
+}
+
+test('is this the answer?', (t) => {
+    t.assertion(isAnswer, 42); // passes, default message
+    t.assertion(isAnswer, 42, 'what is 6 * 9?'); // passes, custom message
+    t.assertion(isAnswer, 54, 'what is 6 * 9!'); // fails, custom message
+
+    t.end();
+});
+```
+
 ## var htest = test.createHarness()
 
 Create a new test harness instance, which is a function like `test()`, but with a new pending stack and test state.
@@ -402,7 +516,7 @@ By default the TAP output goes to `console.log()`. You can pipe the output to so
 
 ## test.only([name], [opts], cb)
 
-Like `test([name], [opts], cb)` except if you use `.only` this is the only test case that will run for the entire process, all other test cases using `tape` will be ignored.
+Like `test([name], [opts], cb)` except if you use `.only` this is the only test case that will run for the entire process, all other test cases using `fresh-tape` will be ignored.
 
 Check out how the usage of [the --no-only flag](#--no-only) could help ensure there is no `.only` test running in a specified environment.
 
@@ -487,7 +601,7 @@ $ node object.js test/x.js test/y.js
 A convenient alternative to achieve the same:
 ```js
 // report.js
-var test = require('tape');
+var test = require('fresh-tape');
 
 test.createStream({ objectMode: true }).on('data', function (row) {
     console.log(JSON.stringify(row)) // for example
@@ -495,7 +609,7 @@ test.createStream({ objectMode: true }).on('data', function (row) {
 ```
 and then:
 ```sh
-$ tape -r ./report.js **/*.test.js
+$ fresh-tape -r ./report.js **/*.test.js
 ```
 
 # install
@@ -513,7 +627,7 @@ Sometimes `t.end()` doesn’t preserve the expected output ordering.
 For instance the following:
 
 ```js
-var test = require('tape');
+var test = require('fresh-tape');
 
 test('first', function (t) {
 
@@ -549,7 +663,7 @@ because `second` and `third` assume `first` has ended before it actually does.
 Use `t.plan()` instead to let other tests know they should wait:
 
 ```diff
-var test = require('tape');
+var test = require('fresh-tape');
 
 test('first', function (t) {
 

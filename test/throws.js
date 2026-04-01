@@ -4,8 +4,6 @@ var tape = require('../');
 var tap = require('tap');
 var concat = require('concat-stream');
 var inspect = require('object-inspect');
-var assign = require('object.assign');
-
 var stripFullStack = require('./common').stripFullStack;
 
 var getter = function () { return 'message'; };
@@ -24,20 +22,21 @@ tap.test('failures', function (tt) {
     tt.plan(1);
 
     var test = tape.createHarness();
-    test.createStream().pipe(concat(function (body) {
-        tt.same(stripFullStack(body.toString('utf8')), [
+    var count = 0;
+    test.createStream().pipe(concat({ encoding: 'string' }, function (body) {
+        tt.same(stripFullStack(body), [
             'TAP version 13',
             '# non functions',
-            'ok 1 should throw',
-            'ok 2 should throw',
-            'ok 3 should throw',
-            'ok 4 should throw',
-            'ok 5 should throw',
-            'ok 6 should throw',
-            'ok 7 should throw',
-            'ok 8 should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
+            'ok ' + ++count + ' should throw',
             '# function',
-            'not ok 9 should throw',
+            'not ok ' + ++count + ' should throw',
             '  ---',
             '    operator: throws',
             '    expected: undefined',
@@ -50,19 +49,19 @@ tap.test('failures', function (tt) {
             '          [... stack stripped ...]',
             '  ...',
             '# custom error messages',
-            'ok 10 "message" is enumerable',
-            "ok 11 { custom: 'error', message: 'message' }",
-            'ok 12 getter is still the same',
+            'ok ' + ++count + ' "message" is enumerable',
+            'ok ' + ++count + ' { custom: \'error\', message: \'message\' }',
+            'ok ' + ++count + ' getter is still the same',
             '# throws null',
-            'ok 13 throws null',
+            'ok ' + ++count + ' throws null',
             '# wrong type of error',
-            'not ok 14 throws actual',
+            'not ok ' + ++count + ' throws actual',
             '  ---',
             '    operator: throws',
             '    expected: |-',
             '      [Function: TypeError]',
             '    actual: |-',
-            '      { [RangeError: actual!] ' + ('cause' in Error.prototype ? '[cause]: undefined, ' : '') + "message: 'actual!' }",
+            "      { [RangeError: actual!] message: 'actual!' }",
             '    at: Test.<anonymous> ($TEST/throws.js:$LINE:$COL)',
             '    stack: |-',
             '      RangeError: actual!',
@@ -70,40 +69,137 @@ tap.test('failures', function (tt) {
             '          [... stack stripped ...]',
             '  ...',
             '# object',
-            'ok 15 object properties are validated',
+            'ok ' + ++count + ' object properties are validated',
             '# object with regexes',
-            'ok 16 object with regex values is validated',
+            'ok ' + ++count + ' object with regex values is validated',
             '# similar error object',
-            'ok 17 throwing a similar error',
+            'ok ' + ++count + ' throwing a similar error',
             '# validate with regex',
-            'ok 18 regex against toString of error',
+            'ok ' + ++count + ' regex against toString of error',
             '# custom error validation',
-            'ok 19 error is SyntaxError',
-            'ok 20 error matches /value/',
-            'ok 21 unexpected error',
+            'ok ' + ++count + ' error is SyntaxError',
+            'ok ' + ++count + ' error matches /value/',
+            'ok ' + ++count + ' unexpected error',
             '# throwing primitives',
-            'ok 22 primitive: null',
-            'ok 23 primitive: undefined',
-            'ok 24 primitive: 0',
-            'ok 25 primitive: NaN',
-            'ok 26 primitive: 42',
-            'ok 27 primitive: Infinity',
-            'ok 28 primitive: \'\'',
-            'ok 29 primitive: \'foo\'',
-            'ok 30 primitive: true',
-            'ok 31 primitive: false',
+            'ok ' + ++count + ' primitive: null, no expected',
+            'not ok ' + ++count + ' primitive: null, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      null',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: undefined, no expected',
+            'not ok ' + ++count + ' primitive: undefined, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      undefined',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '    stack: |-',
+            '      Error: primitive: undefined, with non-empty expected object',
+            '          [... stack stripped ...]',
+            '          at $TEST/throws.js:$LINE:$COL',
+            '          [... stack stripped ...]',
+            '          at Test.<anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '          [... stack stripped ...]',
+            '  ...',
+            'ok ' + ++count + ' primitive: 0, no expected',
+            'not ok ' + ++count + ' primitive: 0, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      0',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: NaN, no expected',
+            'not ok ' + ++count + ' primitive: NaN, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      NaN',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: 42, no expected',
+            'not ok ' + ++count + ' primitive: 42, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      42',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: Infinity, no expected',
+            'not ok ' + ++count + ' primitive: Infinity, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      Infinity',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: \'\', no expected',
+            'not ok ' + ++count + ' primitive: \'\', with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      \'\'',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: \'foo\', no expected',
+            'not ok ' + ++count + ' primitive: \'foo\', with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      \'foo\'',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: true, no expected',
+            'not ok ' + ++count + ' primitive: true, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      true',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            'ok ' + ++count + ' primitive: false, no expected',
+            'not ok ' + ++count + ' primitive: false, with non-empty expected object',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { a: \'b\' }',
+            '    actual: |-',
+            '      false',
+            '    at: <anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
             '# ambiguous arguments',
-            'ok 32 Second',
-            'ok 33 Second',
-            'ok 34 Second',
-            'ok 35 should throw',
-            'not ok 36 should throw',
+            'ok ' + ++count + ' Second',
+            'ok ' + ++count + ' Second',
+            'ok ' + ++count + ' Second',
+            'ok ' + ++count + ' should throw',
+            'not ok ' + ++count + ' should throw',
             '  ---',
             '    operator: throws',
             '    expected: |-',
             '      \'/Second$/\'',
             '    actual: |-',
-            '      { [Error: First] ' + ('cause' in Error.prototype ? '[cause]: undefined, ' : '') + 'message: \'First\' }',
+            '      { [Error: First] message: \'First\' }',
             '    at: Test.<anonymous> ($TEST/throws.js:$LINE:$COL)',
             '    stack: |-',
             '      Error: First',
@@ -112,11 +208,28 @@ tap.test('failures', function (tt) {
             '          at Test.<anonymous> ($TEST/throws.js:$LINE:$COL)',
             '          [... stack stripped ...]',
             '  ...',
+            '# non-extensible throw match',
+            'ok ' + ++count + ' error is non-extensible',
+            'ok ' + ++count + ' non-extensible error matches',
+            'ok ' + ++count + ' errorWithMessage is non-extensible',
+            'not ok ' + ++count + ' non-extensible error with message matches',
+            '  ---',
+            '    operator: throws',
+            '    expected: |-',
+            '      { foo: 1 }',
+            '    actual: |-',
+            '      { message: \'abc\' }',
+            '    at: Test.<anonymous> ($TEST/throws.js:$LINE:$COL)',
+            '  ...',
+            '# frozen `message` property',
+            'ok ' + ++count + ' error is non-writable',
+            'ok ' + ++count + ' error is non-configurable',
+            'ok ' + ++count + ' non-writable error matches',
             '',
-            '1..36',
-            '# tests 36',
-            '# pass  33',
-            '# fail  3',
+            '1..' + count,
+            '# tests ' + count,
+            '# pass  39',
+            '# fail  ' + (count - 39),
             ''
         ]);
     }));
@@ -222,7 +335,7 @@ tap.test('failures', function (tt) {
             function () {
                 var otherErr = new TypeError('Not found');
                 // Copy all enumerable properties from `err` to `otherErr`.
-                assign(otherErr, err);
+                Object.assign(otherErr, err);
                 throw otherErr;
             },
             // The error's `message` and `name` properties will also be checked when using
@@ -249,7 +362,7 @@ tap.test('failures', function (tt) {
             function () { throw new SyntaxError('Wrong value'); },
             function (error) {
                 t.ok(error instanceof SyntaxError, 'error is SyntaxError');
-                t.ok((/value/).test(error), 'error matches /value/');
+                t.ok((/value/).test(String(error)), 'error matches /value/');
                 // Avoid returning anything from validation functions besides `true`.
                 // Otherwise, it's not clear what part of the validation failed. Instead,
                 // throw an error about the specific validation that failed (as done in this
@@ -264,7 +377,8 @@ tap.test('failures', function (tt) {
 
     test('throwing primitives', function (t) {
         [null, undefined, 0, NaN, 42, Infinity, '', 'foo', true, false].forEach(function (primitive) {
-            t.throws(function () { throw primitive; }, 'primitive: ' + inspect(primitive));
+            t.throws(function () { throw primitive; }, 'primitive: ' + inspect(primitive) + ', no expected');
+            t.throws(function () { throw primitive; }, { a: 'b' }, 'primitive: ' + inspect(primitive) + ', with non-empty expected object');
         });
 
         t.end();
@@ -302,6 +416,34 @@ tap.test('failures', function (tt) {
         // If the error message does not match, an AssertionError is thrown.
         t.throws(throwingFirst, /Second$/);
         // AssertionError [ERR_ASSERTION]
+        t.end();
+    });
+
+    test('non-extensible throw match', { skip: !Object.seal }, function (t) {
+        var error = { foo: 1 };
+        Object.seal(error);
+        t.throws(function () { error.x = 1; }, TypeError, 'error is non-extensible');
+
+        t.throws(function () { throw error; }, error, 'non-extensible error matches');
+
+        var errorWithMessage = { message: 'abc' };
+        Object.seal(errorWithMessage);
+        t.throws(function () { errorWithMessage.x = 1; }, TypeError, 'errorWithMessage is non-extensible');
+
+        t.throws(function () { throw errorWithMessage; }, error, 'non-extensible error with message matches');
+
+        t.end();
+    });
+
+    test('frozen `message` property', { skip: !Object.defineProperty }, function (t) {
+        var error = { message: 'abc' };
+        Object.defineProperty(error, 'message', { configurable: false, enumerable: false, writable: false });
+
+        t.throws(function () { error.message = 'def'; }, TypeError, 'error is non-writable');
+        t.throws(function () { delete error.message; }, TypeError, 'error is non-configurable');
+
+        t.throws(function () { throw error; }, { message: 'abc' }, 'non-writable error matches');
+
         t.end();
     });
 });

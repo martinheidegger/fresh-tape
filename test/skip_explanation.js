@@ -8,8 +8,9 @@ var stripFullStack = require('./common').stripFullStack;
 tap.test('test skip explanations', function (assert) {
     assert.plan(1);
 
-    var verify = function (output) {
-        assert.deepEqual(stripFullStack(output.toString('utf8')), [
+    var tapeTest = test.createHarness();
+    tapeTest.createStream().pipe(concat({ encoding: 'string' }, function (output) {
+        assert.deepEqual(stripFullStack(output), [
             'TAP version 13',
             '# SKIP (this skips)',
             '# some tests might skip',
@@ -25,6 +26,8 @@ tap.test('test skip explanations', function (assert) {
             'ok 8 this runs',
             '# too much explanation',
             'ok 9 run openssl # SKIP Installer cannot work on windows and fails to add to PATH Err: (2401) denied',
+            '# SKIP skipped subtest description!',
+            '# SKIP this is a skipped test vs just an assertion skip description!',
             '',
             '1..9',
             '# tests 9',
@@ -33,10 +36,7 @@ tap.test('test skip explanations', function (assert) {
             '# ok',
             ''
         ]);
-    };
-
-    var tapeTest = test.createHarness();
-    tapeTest.createStream().pipe(concat(verify));
+    }));
 
     tapeTest('(this skips)', { skip: true }, function (t) {
         t.fail('doesn\'t run');
@@ -78,7 +78,16 @@ tap.test('test skip explanations', function (assert) {
             'run openssl',
             { skip: platform === 'win32' && 'Installer cannot work on windows\nand fails to add to PATH\n\n Err: (2401) denied' }
         );
+
+        t.test('skipped subtest', { skip: 'description!' }, function (st) {
+            st.fail('does not run');
+        });
+
         t.end();
+    });
+
+    tapeTest('this is a skipped test vs just an assertion', { skip: 'skip description!' }, function (t) {
+        t.fail('does not run');
     });
 });
 

@@ -3,10 +3,8 @@
 var tape = require('../');
 var tap = require('tap');
 var concat = require('concat-stream');
-var forEach = require('for-each');
 var v = require('es-value-fixtures');
 var inspect = require('object-inspect');
-var flatMap = require('array.prototype.flatmap');
 
 var stripFullStack = require('./common').stripFullStack;
 
@@ -79,7 +77,7 @@ tap.test('teardowns', function (tt) {
             '# teardown runs after teardown error',
             '# teardown given non-function fails the test',
             'ok 9 should be truthy',
-            flatMap(v.nonFunctions, function (nonFunction, i) {
+            v.nonFunctions.flatMap(function (nonFunction, i) {
                 var offset = 10;
                 return [].concat(
                     'not ok ' + (offset + (i > 0 ? i + 1 : i)) + ' teardown: ' + inspect(nonFunction) + ' is not a function',
@@ -92,6 +90,7 @@ tap.test('teardowns', function (tt) {
                     '          at $TEST/teardown.js:$LINE:$COL',
                     '          [... stack stripped ...]',
                     '          at Test.<anonymous> ($TEST/teardown.js:$LINE:$COL)',
+                    '          [... stack stripped ...]',
                     '  ...',
                     i > 0 ? [] : [
                         'not ok ' + (offset + 1) + ' plan != count',
@@ -99,8 +98,13 @@ tap.test('teardowns', function (tt) {
                         '    operator: fail',
                         '    expected: 1',
                         '    actual:   2',
+                        '    at: <anonymous> ($TEST/teardown.js:$LINE:$COL)',
                         '    stack: |-',
                         '      Error: plan != count',
+                        '          [... stack stripped ...]',
+                        '          at $TEST/teardown.js:$LINE:$COL',
+                        '          [... stack stripped ...]',
+                        '          at Test.<anonymous> ($TEST/teardown.js:$LINE:$COL)',
                         '          [... stack stripped ...]',
                         '  ...'
                     ]
@@ -221,7 +225,7 @@ tap.test('teardowns', function (tt) {
 
         t.ok('non-function test');
 
-        forEach(v.nonFunctions, function (nonFunction) {
+        v.nonFunctions.forEach(function (nonFunction) {
             t.teardown(nonFunction);
         });
     });

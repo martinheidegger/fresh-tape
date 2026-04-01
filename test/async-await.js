@@ -3,16 +3,12 @@
 var tap = require('tap');
 
 var stripFullStack = require('./common').stripFullStack;
+var stripDeprecations = require('./common').stripDeprecations;
 var runProgram = require('./common').runProgram;
 
-var nodeVersion = process.versions.node;
-var majorVersion = nodeVersion.split('.')[0];
-
-if (Number(majorVersion) < 8) {
-    process.exit(0); // eslint-disable-line no-process-exit
-}
-
-var node17 = Number(majorVersion) >= 17;
+var majorVersion = Number(process.versions.node.split('.')[0]);
+var node15 = majorVersion >= 15;
+var node17 = node15 && majorVersion >= 17;
 
 var lengthMessage = 'Cannot read property \'length\' of null';
 try {
@@ -38,7 +34,7 @@ tap.test('async1', function (t) {
             ''
         ]);
         t.same(r.exitCode, 0);
-        t.same(r.stderr.toString('utf8'), '');
+        t.same(stripDeprecations(r.stderr.toString('utf8')), '');
         t.end();
     });
 });
@@ -74,7 +70,7 @@ tap.test('async2', function (t) {
             ''
         ]);
         t.same(r.exitCode, 1);
-        t.same(r.stderr.toString('utf8'), '');
+        t.same(stripDeprecations(r.stderr.toString('utf8')), '');
         t.end();
     });
 });
@@ -96,7 +92,7 @@ tap.test('async3', function (t) {
             ''
         ]);
         t.same(r.exitCode, 0);
-        t.same(r.stderr.toString('utf8'), '');
+        t.same(stripDeprecations(r.stderr.toString('utf8')), '');
         t.end();
     });
 });
@@ -125,7 +121,7 @@ tap.test('async4', function (t) {
             ''
         ]);
         t.same(r.exitCode, 1);
-        t.same(r.stderr.toString('utf8'), '');
+        t.same(stripDeprecations(r.stderr.toString('utf8')), '');
         t.end();
     });
 });
@@ -179,7 +175,7 @@ tap.test('async5', function (t) {
             ''
         ]);
         t.same(r.exitCode, 1);
-        t.same(r.stderr.toString('utf8'), '');
+        t.same(stripDeprecations(r.stderr.toString('utf8')), '');
         t.end();
     });
 });
@@ -203,16 +199,17 @@ tap.test('sync-error', function (t) {
         });
         stderr = lines.join('\n');
 
-        t.same(stripFullStack(stderr), [].concat(
+        t.same(stripFullStack(stripDeprecations(stderr)), [].concat(
             '$TEST/async-await/sync-error.js:7',
             '    throw new Error(\'oopsie\');',
             '    ^',
             '',
             'Error: oopsie',
             '    at Test.myTest ($TEST/async-await/sync-error.js:$LINE:$COL)',
-            '    at Test.bound [as _cb] ($TAPE/lib/test.js:$LINE:$COL)',
             '    at Test.run ($TAPE/lib/test.js:$LINE:$COL)',
-            '    at Test.bound [as run] ($TAPE/lib/test.js:$LINE:$COL)',
+            node15 ? [
+                '    at processImmediate (timers:$LINE:$COL)'
+            ] : [],
             node17 ? [
                 '',
                 'Node.js ' + process.version
@@ -254,7 +251,7 @@ tap.test('async-error', function (t) {
         ]);
         t.same(r.exitCode, 1);
 
-        var stderr = r.stderr.toString('utf8');
+        var stderr = stripDeprecations(r.stderr.toString('utf8'));
         var stderrLines = stderr.split('\n');
         stderrLines = stderrLines.filter(function (line) {
             return !(/\(timers.js:/).test(line)
@@ -298,7 +295,7 @@ tap.test('async-bug', function (t) {
         ]);
         t.same(r.exitCode, 1);
 
-        var stderr = r.stderr.toString('utf8');
+        var stderr = stripDeprecations(r.stderr.toString('utf8'));
 
         t.same(stderr, '');
         t.end();

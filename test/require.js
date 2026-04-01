@@ -69,5 +69,5 @@ tap.test('requiring multiple modules', function (t) {
 function tape(args) {
     var bin = __dirname + '/../bin/fresh-tape';
 
-    return spawn('node', [bin].concat(args.split(' ')), { cwd: __dirname });
+    return spawn(process.execPath, [bin].concat(args.split(' ')), { cwd: __dirname });
 }
